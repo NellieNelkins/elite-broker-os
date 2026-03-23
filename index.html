@@ -959,6 +959,26 @@ tr:hover .del-btn{opacity:1;}
   .editable:hover::after{display:none;}
 }
 
+
+/* ── GOOGLE DRIVE CONNECT ── */
+.drive-card{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:10px;}
+.drive-card h3{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-bottom:9px;}
+.drive-tabs{display:flex;gap:6px;margin-bottom:12px;}
+.drive-tab{flex:1;padding:6px;background:var(--s3);border:1px solid var(--border);border-radius:6px;font-family:var(--sans);font-size:10px;font-weight:700;color:var(--t3);cursor:pointer;text-align:center;transition:all .15s;}
+.drive-tab.active{background:var(--gold-bg);border-color:var(--gold-b);color:var(--gold);}
+.drive-section{display:none;}
+.drive-section.active{display:block;}
+.drive-file-item{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--s3);border:1px solid var(--border);border-radius:7px;margin-bottom:7px;font-size:11px;}
+.drive-file-item:last-child{margin-bottom:0;}
+.dfi-name{display:flex;align-items:center;gap:7px;color:var(--text);}
+.dfi-icon{font-size:14px;}
+.dfi-meta{font-size:9px;color:var(--t3);margin-top:1px;}
+.dfi-actions{display:flex;gap:5px;}
+.drive-status{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:7px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-top:9px;}
+.ds-connected{background:var(--em-bg);color:var(--em);border:1px solid rgba(45,212,160,.2);}
+.ds-error{background:var(--cr-bg);color:var(--cr);border:1px solid rgba(255,61,90,.2);}
+.ds-pending{background:var(--am-bg);color:var(--am);border:1px solid rgba(245,158,11,.2);}
+
 </style>
 </head>
 <body>
@@ -1173,10 +1193,14 @@ tr:hover .del-btn{opacity:1;}
 <!-- CONNECT PAGE -->
 <div id="page-connect" class="page">
 <div class="cbanner">
+
+  <!-- LEFT: Upload + Google Drive -->
   <div class="cbside">
-    <h2>📂 Upload Excel File</h2>
-    <p>Drag and drop your <strong style="color:var(--gold)">elite_broker_data.xlsx</strong> onto the zone below. The dashboard reads your Contacts, Pipeline, Listings, and Daily Activity sheets automatically — no configuration needed.</p>
-    <div class="cbm">
+    <h2>📂 Data Sources</h2>
+    <p>Upload your Excel file locally, or connect Google Drive / OneDrive for live automatic sync every 5 minutes.</p>
+
+    <!-- Local Upload -->
+    <div class="cbm" style="margin-bottom:10px;">
       <h3>Local file upload</h3>
       <div class="uzone" id="uz"><input type="file" id="fi" accept=".xlsx,.xls" onchange="handleFile(this.files[0])"/>
         <div class="uzi">📊</div>
@@ -1185,23 +1209,98 @@ tr:hover .del-btn{opacity:1;}
       </div>
       <div id="us" style="margin-top:9px;font-size:11px;color:var(--t2);"></div>
     </div>
+
+    <!-- Google Drive -->
+    <div class="drive-card">
+      <h3>🟢 Google Drive sync <span class="achip">Auto-refresh 5min</span></h3>
+      <div class="drive-tabs">
+        <button class="drive-tab active" onclick="switchDriveTab('excel',this)">📊 Excel Data</button>
+        <button class="drive-tab" onclick="switchDriveTab('backup',this)">💾 Backup</button>
+        <button class="drive-tab" onclick="switchDriveTab('team',this)">👥 Team Share</button>
+      </div>
+
+      <!-- Excel Data Sync -->
+      <div class="drive-section active" id="dt-excel">
+        <p style="font-size:10px;color:var(--t2);margin-bottom:9px;">Paste your Google Drive Excel share link to sync live data:</p>
+        <div class="odrow">
+          <input class="odinput" id="gdl" placeholder="https://drive.google.com/file/d/…/view?usp=sharing"/>
+          <button class="btn-g" onclick="connectGDrive()">Connect</button>
+        </div>
+        <div id="gds" style="font-size:10px;color:var(--t2);margin-top:7px;"></div>
+        <div class="cbm" style="margin-top:10px;padding:11px;">
+          <h3>How to get your Google Drive link</h3>
+          <div class="astep"><div class="asn">1</div><div>Upload <strong>elite_broker_data.xlsx</strong> to your Drive folder</div></div>
+          <div class="astep"><div class="asn">2</div><div>Right-click → <strong>Share</strong> → change to <strong>"Anyone with the link"</strong></div></div>
+          <div class="astep"><div class="asn">3</div><div>Click <strong>Copy link</strong> → paste above → Connect</div></div>
+          <div class="astep"><div class="asn">4</div><div>Dashboard auto-syncs every <strong>5 minutes</strong></div></div>
+        </div>
+      </div>
+
+      <!-- Backup -->
+      <div class="drive-section" id="dt-backup">
+        <p style="font-size:10px;color:var(--t2);margin-bottom:10px;">Back up your dashboard HTML to Google Drive so you never lose your work:</p>
+        <button class="btn-g" style="width:100%;padding:10px;font-size:11px;" onclick="backupToDrive()">⬇ Download & Save to Drive</button>
+        <div style="margin-top:10px;font-size:10px;color:var(--t2);line-height:1.6;">
+          This downloads your latest dashboard file. Then drag it into your Drive folder at:<br>
+          <a href="https://drive.google.com/drive/folders/1dQXd7jEt7_ed6nZtRaij9hv_QTFmWiO6" target="_blank" style="color:var(--gold);font-size:10px;">drive.google.com/drive/folders/1dQXd7j…</a>
+        </div>
+        <div class="cbm" style="margin-top:10px;padding:11px;">
+          <h3>Auto-backup tip</h3>
+          <div class="astep"><div class="asn">1</div><div>Every time I build you a new version, download it here</div></div>
+          <div class="astep"><div class="asn">2</div><div>Drag into your Drive folder — it keeps version history automatically</div></div>
+          <div class="astep"><div class="asn">3</div><div>Also push to GitHub to keep your live site updated</div></div>
+        </div>
+      </div>
+
+      <!-- Team Share -->
+      <div class="drive-section" id="dt-team">
+        <p style="font-size:10px;color:var(--t2);margin-bottom:10px;">Share your dashboard and data with your team:</p>
+        <div class="drive-file-item">
+          <div class="dfi-name"><span class="dfi-icon">🌐</span><div><div>Live Dashboard URL</div><div class="dfi-meta">https://nellienelkins.github.io/elite-broker-os</div></div></div>
+          <button class="ab" onclick="copyTeamLink()">Copy</button>
+        </div>
+        <div class="drive-file-item">
+          <div class="dfi-name"><span class="dfi-icon">📁</span><div><div>Drive Folder</div><div class="dfi-meta">Share your Drive folder with team emails</div></div></div>
+          <a href="https://drive.google.com/drive/folders/1dQXd7jEt7_ed6nZtRaij9hv_QTFmWiO6" target="_blank" class="ab" style="text-decoration:none;">Open</a>
+        </div>
+        <div class="drive-file-item">
+          <div class="dfi-name"><span class="dfi-icon">📊</span><div><div>Excel Template</div><div class="dfi-meta">Share elite_broker_data.xlsx with team</div></div></div>
+          <button class="ab" onclick="saveAllToExcel()">Export</button>
+        </div>
+        <div style="margin-top:10px;padding:9px 11px;background:var(--gold-bg);border:1px solid var(--gold-b);border-radius:7px;font-size:10px;color:var(--t2);line-height:1.6;">
+          💡 <strong style="color:var(--gold)">Team setup:</strong> Share your Drive folder → each team member opens the live URL → they see the same data when you sync from Excel.
+        </div>
+      </div>
+
+    </div><!-- /drive-card -->
   </div>
+
+  <!-- RIGHT: OneDrive -->
   <div class="cbside">
     <h2>☁ OneDrive Live Sync <span class="achip">Auto-refresh 5min</span></h2>
-    <p>Save your Excel file to OneDrive and share it. The dashboard fetches fresh data every <strong style="color:var(--gold)">5 minutes</strong> automatically — your dashboard stays live without any manual steps.</p>
+    <p>Save your Excel file to OneDrive and share it. The dashboard fetches fresh data every <strong style="color:var(--gold)">5 minutes</strong> automatically.</p>
     <div class="cbm">
       <h3>OneDrive share link</h3>
       <div class="odrow"><input class="odinput" id="odl" placeholder="https://1drv.ms/x/s!… paste your share link"/><button class="btn-g" onclick="connectOD()">Connect</button></div>
       <div id="ods" style="font-size:10px;color:var(--t2);margin-top:7px;"></div>
     </div>
-    <div class="cbm" style="margin-top:12px;">
+    <div class="cbm" style="margin-top:10px;">
       <h3>How to get your OneDrive link</h3>
-      <div class="astep"><div class="asn">1</div><div>Save <strong>elite_broker_data.xlsx</strong> to your OneDrive folder</div></div>
+      <div class="astep"><div class="asn">1</div><div>Save <strong>elite_broker_data.xlsx</strong> to OneDrive</div></div>
       <div class="astep"><div class="asn">2</div><div>Right-click → <strong>Share</strong> → <strong>Copy link</strong></div></div>
-      <div class="astep"><div class="asn">3</div><div>Set permission to <strong>"Anyone with link can view"</strong></div></div>
-      <div class="astep"><div class="asn">4</div><div>Paste above and click <strong>Connect</strong> — done</div></div>
-      <div class="astep"><div class="asn">5</div><div>Dashboard <strong>auto-syncs every 5 minutes</strong></div></div>
+      <div class="astep"><div class="asn">3</div><div>Set to <strong>"Anyone with link can view"</strong></div></div>
+      <div class="astep"><div class="asn">4</div><div>Paste above → click <strong>Connect</strong></div></div>
     </div>
+
+    <!-- Drive folder quick access -->
+    <div class="cbm" style="margin-top:10px;">
+      <h3>Your Google Drive folder</h3>
+      <div class="drive-file-item" style="margin-bottom:0;">
+        <div class="dfi-name"><span class="dfi-icon">📁</span><div><div style="font-weight:600;">Elite Broker OS Folder</div><div class="dfi-meta">Your saved files and backups</div></div></div>
+        <a href="https://drive.google.com/drive/folders/1dQXd7jEt7_ed6nZtRaij9hv_QTFmWiO6" target="_blank" class="btn-g" style="text-decoration:none;font-size:9px;padding:5px 11px;">Open Drive</a>
+      </div>
+    </div>
+
   </div>
 </div>
 <div class="card"><div class="card-hd"><div class="ctitle"><div class="dot" style="background:var(--gold)"></div>Required Excel Sheet Structure — Column Order Must Match</div></div>
@@ -3547,6 +3646,112 @@ renderAll = function(){
   if(typeof renderAccScore==='function'&&document.getElementById('accScore')) renderAccScore();
   if(_watcherStarted){var ca=checkAlertConditions();if(ca)showFloatingAlert(ca);}
 };
+
+
+// ════════════════════════════════════════
+//  GOOGLE DRIVE INTEGRATION
+// ════════════════════════════════════════
+var gdInterval = null;
+
+// Convert Google Drive share link to direct download URL
+function convertGDriveUrl(url){
+  // Handle file share links: drive.google.com/file/d/FILE_ID/view
+  var m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if(m) return 'https://drive.google.com/uc?export=download&id='+m[1];
+  // Handle open links: drive.google.com/open?id=FILE_ID
+  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if(m2) return 'https://drive.google.com/uc?export=download&id='+m2[1];
+  // Already a download link
+  if(url.includes('uc?export=download')) return url;
+  return null;
+}
+
+function connectGDrive(){
+  var raw = document.getElementById('gdl').value.trim();
+  if(!raw){ toast('Paste your Google Drive share link first.', true); return; }
+  var url = convertGDriveUrl(raw);
+  if(!url){
+    document.getElementById('gds').textContent = '✗ Could not parse link. Use File → Share → Copy link from Google Drive.';
+    document.getElementById('gds').style.color = 'var(--cr)';
+    return;
+  }
+  localStorage.setItem('gd_link', raw);
+  setSS('syncing', 'Connecting Google Drive…');
+  document.getElementById('gds').textContent = 'Connecting…';
+  fetchGDriveFile(url, raw);
+  if(gdInterval) clearInterval(gdInterval);
+  gdInterval = setInterval(function(){ fetchGDriveFile(convertGDriveUrl(raw), raw); }, 5*60*1000);
+}
+
+async function fetchGDriveFile(url, label){
+  setSS('syncing', 'Syncing Drive…');
+  try{
+    var res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    var buf = await res.arrayBuffer();
+    var ok = parseXL(buf, 'Google Drive: '+label.substring(0,25)+'…');
+    var el = document.getElementById('gds');
+    if(el){
+      el.textContent = ok ? '✓ Connected — auto-syncs every 5 minutes' : '✗ File loaded but parse failed. Check column structure.';
+      el.style.color = ok ? 'var(--em)' : 'var(--cr)';
+    }
+  } catch(e){
+    setSS('err', 'Drive sync failed');
+    var el = document.getElementById('gds');
+    if(el){
+      el.textContent = '✗ '+e.message+'. Make sure sharing is set to "Anyone with the link".';
+      el.style.color = 'var(--cr)';
+    }
+  }
+}
+
+// Switch between drive tabs (Excel/Backup/Team)
+function switchDriveTab(name, btn){
+  document.querySelectorAll('.drive-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.drive-section').forEach(function(s){ s.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  var sec = document.getElementById('dt-'+name);
+  if(sec) sec.classList.add('active');
+}
+
+// Backup dashboard to Drive (downloads file for manual upload)
+function backupToDrive(){
+  var link = document.createElement('a');
+  link.href = window.location.href;
+  // Get the current page source
+  var content = '<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  var blob = new Blob([content], {type:'text/html'});
+  var url = URL.createObjectURL(blob);
+  link.href = url;
+  var d = new Date();
+  link.download = 'elite_broker_backup_'+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'.html';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  toast('✓ Backup downloaded — drag it into your Drive folder');
+}
+
+// Copy team link to clipboard
+function copyTeamLink(){
+  var url = 'https://nellienelkins.github.io/elite-broker-os';
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(function(){
+      toast('✓ Dashboard URL copied to clipboard');
+    });
+  } else {
+    toast('URL: '+url);
+  }
+}
+
+// Restore Google Drive link on load
+window.addEventListener('load', function(){
+  var saved = localStorage.getItem('gd_link');
+  if(saved){
+    var el = document.getElementById('gdl');
+    if(el) el.value = saved;
+  }
+});
 
 </script>
 </body>
