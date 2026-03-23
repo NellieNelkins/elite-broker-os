@@ -2196,6 +2196,7 @@ function nav(n,btn){
 
 // AI
 function openAI(t){
+  if(!checkApiKey()) return;
   let tt={full:'⚡ Full Elite Analysis',contacts:'📞 Contact Scripts',funnel:'📊 Funnel Fix',pipeline:'💰 Pipeline Review',listings:'🏠 Listing Optimisation',slow:'📉 Slow Day Protocol',forecast:'📈 Forecast'};
   document.getElementById('at').textContent=tt[t]||'Analysis';
   document.getElementById('am').classList.add('open');
@@ -2223,7 +2224,8 @@ async function runAI(t){
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:getApiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:p[t]||p.full}]})});
     const data=await res.json();
-    let txt=data.content?.map(b=>b.text||'').join('')||'No response.';
+    if(data.error){ throw new Error(data.error.message||'API error'); }
+    let txt=(data.content&&data.content.length>0)?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text||'';}).join(''):'No response received.';
     txt=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3} (.*)/gm,'<h3 style="font-family:var(--serif);font-size:15px;color:var(--text);margin:9px 0 4px">$1</h3>').replace(/^\d+\. (.*)/gm,'<li>$1</li>').replace(/^[•\-] (.*)/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,'<ul style="padding-left:14px;margin:4px 0">$&</ul>').replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
     document.getElementById('ab2').innerHTML=`<div class="aib"><h3>🤖 AI Analysis — ${src}</h3><div>${txt}</div></div>`;
   }catch(e){document.getElementById('ab2').innerHTML=`<div class="aib" style="border-color:rgba(255,61,90,.25);color:var(--cr)">Error: ${e.message}</div>`;}
@@ -2613,6 +2615,7 @@ function initChat(){
 }
 
 async function sendChat(){
+  if(!checkApiKey()) return;
   var input=document.getElementById('chatInput');
   var btn=document.getElementById('chatSendBtn');
   var q=input.value.trim();
@@ -2629,7 +2632,8 @@ async function sendChat(){
         system:MARKET_SYSTEM+' When searching for data, always check dxbinteract.com first for transaction data and price trends, then DLD, then Property Finder and Bayut.',messages:chatHistory})
     });
     const data=await res.json();
-    var text=data.content?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join(''):'No response.';
+    if(data.error) throw new Error(data.error.message||'API error');
+    var text=data.content&&data.content.length>0?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text||'';}).join(''):'No response received.';
     var t=document.getElementById('typingIndicator');if(t)t.remove();
     appendMsg('ai',text);
     chatHistory.push({role:'assistant',content:text});
@@ -2916,6 +2920,7 @@ function appendCoachTyping(){
 }
 
 async function sendCoach(){
+  if(!checkApiKey()) return;
   var input=document.getElementById('coachInput');
   var btn=document.getElementById('coachSendBtn');
   var q=input.value.trim();
@@ -2931,7 +2936,8 @@ async function sendCoach(){
         system:COACH_SYSTEM(),messages:coachHistory})
     });
     var data=await res.json();
-    var text=data.content?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join(''):'...';
+    if(data.error) throw new Error(data.error.message||'API error');
+    var text=data.content&&data.content.length>0?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text||'';}).join(''):'No response.';
     var t=document.getElementById('coachTyping');if(t)t.remove();
     appendCoachMsg('coach',text);
     coachHistory.push({role:'assistant',content:text});
@@ -3805,8 +3811,18 @@ function getApiHeaders(){
     'Content-Type': 'application/json',
     'x-api-key': _apiKey,
     'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-direct-browser-access': 'true'
+    'anthropic-beta': 'direct-browser-allowed'
   };
+}
+
+// Check API key is set before any call
+function checkApiKey(){
+  if(!_apiKey){
+    nav('connect', document.querySelectorAll('.tab')[8]);
+    toast('⚡ Please set your Anthropic API key in the Connect tab first.', true);
+    return false;
+  }
+  return true;
 }
 
 // Load saved key on startup
