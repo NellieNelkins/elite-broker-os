@@ -1303,6 +1303,34 @@ tr:hover .del-btn{opacity:1;}
 
   </div>
 </div>
+
+<!-- API KEY SECTION -->
+<div class="card" style="margin-bottom:16px;border-color:rgba(201,168,76,.3);">
+  <div class="card-hd">
+    <div class="ctitle"><div class="dot" style="background:var(--gold)"></div>⚡ Anthropic API Key — Required for AI Features</div>
+    <span class="achip">One-time setup</span>
+  </div>
+  <div class="cbody">
+    <p style="font-size:11px;color:var(--t2);margin-bottom:12px;line-height:1.6;">
+      All AI features (Coach, Market Intel, Analysis) require your Anthropic API key. It is stored only in your browser — never sent anywhere except directly to Anthropic.
+    </p>
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+      <div>
+        <div style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-bottom:5px;">API Key</div>
+        <input class="odinput" id="apiKeyInput" type="password" placeholder="sk-ant-api03-…" style="width:100%;"/>
+      </div>
+      <button class="btn-g" onclick="saveApiKey()">Save Key</button>
+    </div>
+    <div id="apiKeyStatus" style="font-size:10px;color:var(--t2);margin-top:7px;"></div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--s2);border:1px solid var(--border);border-radius:8px;">
+      <div class="astep"><div class="asn">1</div><div>Go to <strong><a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--gold);">console.anthropic.com/settings/keys</a></strong></div></div>
+      <div class="astep"><div class="asn">2</div><div>Click <strong>Create Key</strong> → copy it</div></div>
+      <div class="astep"><div class="asn">3</div><div>Paste above → click <strong>Save Key</strong></div></div>
+      <div class="astep"><div class="asn">4</div><div>All AI features activate immediately — key saved in your browser</div></div>
+    </div>
+  </div>
+</div>
+
 <div class="card"><div class="card-hd"><div class="ctitle"><div class="dot" style="background:var(--gold)"></div>Required Excel Sheet Structure — Column Order Must Match</div></div>
 <div class="cbody"><div class="g4">
   <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:11px;"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">Sheet 1: Contacts</div><div style="font-size:10px;color:var(--t2);line-height:1.7;">Name · Type · Stage · Last Contact (days ago) · Deal Value (AED) · Notes · Phone · Email · Priority</div></div>
@@ -2193,7 +2221,7 @@ async function runAI(t){
     forecast:`Dubai income coach.\nWeighted pipeline: AED ${wc.toLocaleString()}, break-even AED 35K/mo.\nCall→view: ${cvr.cv}%, view→offer: ${cvr.vo}%.\nRealistic 90-day forecast. 2 deals to fast-track. Calls/viewings for AED 120K/month.`,
   };
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:p[t]||p.full}]})});
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:getApiHeaders(),body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:p[t]||p.full}]})});
     const data=await res.json();
     let txt=data.content?.map(b=>b.text||'').join('')||'No response.';
     txt=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3} (.*)/gm,'<h3 style="font-family:var(--serif);font-size:15px;color:var(--text);margin:9px 0 4px">$1</h3>').replace(/^\d+\. (.*)/gm,'<li>$1</li>').replace(/^[•\-] (.*)/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,'<ul style="padding-left:14px;margin:4px 0">$&</ul>').replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
@@ -2492,7 +2520,7 @@ async function loadDailyFact(){
   let topic=topics[new Date().getDate()%topics.length];
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:600,
         tools:[{type:'web_search_20250305',name:'web_search'}],
@@ -2527,7 +2555,7 @@ async function loadInsight(){
   var pick=insights[Math.floor(Math.random()*insights.length)];
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,system:MARKET_SYSTEM,
         messages:[{role:'user',content:'Give a practical broker insight about: '+pick+'. 4 bullet points specific to Dubai market. Start with a bold title.'}]})
     });
@@ -2543,7 +2571,7 @@ async function loadAreaDive(){
   el.innerHTML='<div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;"><div class="skel" style="width:90%"></div><div class="skel" style="width:75%"></div><div class="skel" style="width:85%"></div><div class="skel" style="width:60%"></div></div>';
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:900,
         tools:[{type:'web_search_20250305',name:'web_search'}],
@@ -2595,7 +2623,7 @@ async function sendChat(){
   appendTyping();
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
         tools:[{type:'web_search_20250305',name:'web_search'}],
         system:MARKET_SYSTEM+' When searching for data, always check dxbinteract.com first for transaction data and price trends, then DLD, then Property Finder and Bayut.',messages:chatHistory})
@@ -2898,7 +2926,7 @@ async function sendCoach(){
   appendCoachTyping();
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:500,
         system:COACH_SYSTEM(),messages:coachHistory})
     });
@@ -2926,7 +2954,7 @@ async function getCoachPush(){
   var prompt='LIVE SNAPSHOT: Score='+score+'/100, Discipline='+disc+'/100, Urgent contacts='+urgent+', Hot deals='+hot+', Weighted pipeline=AED '+wc.toLocaleString()+', Target income=AED '+t.income.toLocaleString()+'/mo, Calls today='+ac.calls+'/'+t.calls+', Viewings='+ac.viewings+'/day.\n\nGive me my performance push for right now. Be specific about my numbers. Tell me exactly what to do in the next 2 hours to move the needle. No fluff.';
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:450,
         system:COACH_SYSTEM(),messages:[{role:'user',content:prompt}]})
     });
@@ -3128,7 +3156,7 @@ async function showInterrupt(alert){
   // Load AI coach message in background
   try{
     var res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
         system:COACH_SYSTEM(),
         messages:[{role:'user',content:'I just fell below my performance target. Score='+score+', Urgent contacts='+urgent+', Discipline='+disc+'/100. Give me a 3-sentence kick — what is the single most important thing to do RIGHT NOW?'}]})
@@ -3153,7 +3181,7 @@ async function fetchQuickCoachMsg(){
   var disc  = habits ? habits.filter(function(h){return h.done;}).reduce(function(s,h){return s+h.pts;},0) : 0;
   try{
     var res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method:'POST', headers:getApiHeaders(),
       body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:120,
         system:COACH_SYSTEM(),
         messages:[{role:'user',content:'Score='+score+', Discipline='+disc+'. Give me ONE punchy sentence of coaching motivation for right now. Max 25 words.'}]})
@@ -3311,7 +3339,7 @@ async function fetchEmiratesLiveData(){
   mktCache['emirates']=null;
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:700,
         tools:[{type:'web_search_20250305',name:'web_search'}],
@@ -3334,7 +3362,7 @@ async function fetchMktFact(query){
   var el=document.getElementById('mktContent');
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:600,
         tools:[{type:'web_search_20250305',name:'web_search'}],
@@ -3360,7 +3388,7 @@ async function fetchMktFact(query){
 async function updateTicker(){
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',headers:{'Content-Type':'application/json'},
+      method:'POST',headers:getApiHeaders(),
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',max_tokens:300,
         tools:[{type:'web_search_20250305',name:'web_search'}],
@@ -3752,6 +3780,51 @@ window.addEventListener('load', function(){
     if(el) el.value = saved;
   }
 });
+
+
+// ════════════════════════════════════════
+//  API KEY MANAGEMENT
+// ════════════════════════════════════════
+var _apiKey = localStorage.getItem('anthropic_api_key') || '';
+
+function saveApiKey(){
+  var key = document.getElementById('apiKeyInput').value.trim();
+  if(!key){ toast('Please enter your API key.', true); return; }
+  if(!key.startsWith('sk-ant-')){
+    toast('Invalid key format. Should start with sk-ant-', true); return;
+  }
+  _apiKey = key;
+  localStorage.setItem('anthropic_api_key', key);
+  var el = document.getElementById('apiKeyStatus');
+  if(el){ el.textContent = '✓ API key saved — all AI features are now active'; el.style.color = 'var(--em)'; }
+  toast('✓ API key saved successfully');
+}
+
+function getApiHeaders(){
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': _apiKey,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true'
+  };
+}
+
+// Load saved key on startup
+(function(){
+  var saved = localStorage.getItem('anthropic_api_key');
+  if(saved){
+    _apiKey = saved;
+    var el = document.getElementById('apiKeyInput');
+    if(el) el.value = saved;
+    var st = document.getElementById('apiKeyStatus');
+    if(st){ st.textContent = '✓ API key loaded — AI features active'; st.style.color = 'var(--em)'; }
+  } else {
+    // Show alert to set up API key
+    setTimeout(function(){
+      toast('⚡ Set your Anthropic API key in the ⚙ Connect tab to activate AI features', true);
+    }, 3000);
+  }
+})();
 
 </script>
 </body>
