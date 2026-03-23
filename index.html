@@ -979,6 +979,129 @@ tr:hover .del-btn{opacity:1;}
 .ds-error{background:var(--cr-bg);color:var(--cr);border:1px solid rgba(255,61,90,.2);}
 .ds-pending{background:var(--am-bg);color:var(--am);border:1px solid rgba(245,158,11,.2);}
 
+
+/* ══════════════════════════════════════
+   WHATSAPP GENERATOR
+══════════════════════════════════════ */
+.wa-contact-card{
+  background:var(--s2);border:1px solid var(--border);border-radius:11px;
+  padding:14px 16px;margin-bottom:9px;
+  display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start;
+  transition:border-color .15s;
+}
+.wa-contact-card:hover{border-color:var(--border2);}
+.wac-info{flex:1;}
+.wac-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.wac-meta{font-size:10px;color:var(--t2);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.wac-meta span{display:flex;align-items:center;gap:3px;}
+.wac-msg{
+  background:var(--s3);border:1px solid var(--border);border-radius:9px;
+  padding:10px 13px;font-size:12px;color:var(--t2);line-height:1.7;
+  margin-top:8px;position:relative;min-height:60px;
+}
+.wac-msg.loading{color:var(--t3);}
+.wac-msg strong{color:var(--text);}
+.wac-actions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.wa-send-btn{
+  display:flex;align-items:center;gap:6px;
+  background:#25D366;border:none;color:#fff;
+  padding:8px 14px;border-radius:8px;
+  font-family:var(--sans);font-size:10px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;
+}
+.wa-send-btn:hover{background:#1db954;transform:translateY(-1px);}
+.wa-copy-btn{
+  background:var(--s2);border:1px solid var(--border);color:var(--t2);
+  padding:8px 12px;border-radius:8px;font-family:var(--sans);
+  font-size:10px;font-weight:600;cursor:pointer;transition:all .15s;
+}
+.wa-copy-btn:hover{border-color:var(--gold-b);color:var(--gold);}
+.wa-regen-btn{
+  background:none;border:1px solid var(--border);color:var(--t3);
+  padding:8px 10px;border-radius:8px;font-size:11px;cursor:pointer;
+  transition:all .15s;
+}
+.wa-regen-btn:hover{border-color:var(--border2);color:var(--text);}
+.wa-filter-bar{
+  display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center;
+}
+.wa-filter-btn{
+  padding:5px 12px;border-radius:20px;border:1px solid var(--border);
+  background:none;font-family:var(--sans);font-size:10px;font-weight:600;
+  color:var(--t2);cursor:pointer;transition:all .15s;
+}
+.wa-filter-btn.active{background:var(--gold-bg);border-color:var(--gold-b);color:var(--gold);}
+.wa-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;
+}
+.wa-stat{background:var(--s2);border:1px solid var(--border);border-radius:9px;padding:12px 14px;text-align:center;}
+.wa-stat-v{font-family:var(--serif);font-size:20px;}
+.wa-stat-l{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-top:3px;}
+
+/* ══════════════════════════════════════
+   MORNING BRIEFING
+══════════════════════════════════════ */
+.brief-hero{
+  background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(45,212,160,.06));
+  border:1px solid var(--gold-b);border-radius:16px;
+  padding:22px 26px;margin-bottom:16px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;
+}
+.brief-hero-left h2{font-family:var(--serif);font-size:26px;font-weight:500;}
+.brief-hero-left h2 em{color:var(--gold);font-style:normal;}
+.brief-hero-left p{font-size:11px;color:var(--t2);margin-top:4px;line-height:1.6;}
+.brief-time{font-family:var(--mono);font-size:32px;color:var(--gold);line-height:1;}
+.brief-date{font-size:11px;color:var(--t2);text-align:right;margin-top:2px;}
+
+.brief-section{
+  background:var(--s1);border:1px solid var(--border);border-radius:13px;
+  overflow:hidden;margin-bottom:14px;
+}
+.brief-section-hd{
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--s2);
+}
+.brief-section-title{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
+.brief-section-body{padding:14px 16px;}
+
+.brief-action-item{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.brief-action-item:last-child{border-bottom:none;}
+.bai-num{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;margin-top:1px;
+}
+.bai-num.urgent{background:var(--cr-bg);color:var(--cr);border:1px solid rgba(255,61,90,.2);}
+.bai-num.hot{background:var(--em-bg);color:var(--em);border:1px solid rgba(45,212,160,.2);}
+.bai-num.normal{background:var(--gold-bg);color:var(--gold);border:1px solid var(--gold-b);}
+.bai-content{flex:1;}
+.bai-title{font-size:12px;font-weight:600;margin-bottom:2px;}
+.bai-sub{font-size:10px;color:var(--t2);line-height:1.5;}
+.bai-action{margin-top:5px;}
+
+.brief-market-item{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;
+}
+.brief-market-item:last-child{border-bottom:none;}
+.bmi-icon{font-size:16px;flex-shrink:0;}
+.bmi-text{flex:1;color:var(--t2);}
+.bmi-text strong{color:var(--text);}
+.bmi-val{font-family:var(--mono);font-size:10px;color:var(--gold);}
+
+@media(max-width:680px){
+  .wa-stats{grid-template-columns:repeat(2,1fr);}
+  .wa-contact-card{grid-template-columns:1fr;}
+  .brief-hero{flex-direction:column;}
+  .brief-time{font-size:24px;}
+}
+
 </style>
 </head>
 <body>
@@ -1004,6 +1127,8 @@ tr:hover .del-btn{opacity:1;}
     <button class="tab" onclick="nav('forecast',this)">Forecast</button>
     <button class="tab" onclick="nav('contacts-add',this)">➕ Add Contact</button>
     <button class="tab" onclick="nav('market',this)">🧠 Market Intel</button>
+    <button class="tab" onclick="nav('whatsapp',this)">💬 WhatsApp</button>
+    <button class="tab" onclick="nav('briefing',this)">☀ Briefing</button>
     <button class="tab" onclick="nav('coach',this)">🔥 Coach</button>
     <button class="tab" onclick="nav('connect',this)">⚙ Connect</button>
   </div>
@@ -1772,6 +1897,132 @@ tr:hover .del-btn{opacity:1;}
     <div style="padding:13px 16px;">
       <div class="streak-bar" id="streakBar"></div>
       <div style="font-size:10px;color:var(--t2);margin-top:10px;line-height:1.6;" id="streakMsg"></div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ════════════ WHATSAPP GENERATOR ════════════ -->
+<div id="page-whatsapp" class="page">
+
+  <!-- STATS -->
+  <div class="wa-stats">
+    <div class="wa-stat"><div class="wa-stat-v" id="waSent" style="color:var(--em)">0</div><div class="wa-stat-l">Sent Today</div></div>
+    <div class="wa-stat"><div class="wa-stat-v" id="waUrgent" style="color:var(--cr)">0</div><div class="wa-stat-l">Urgent</div></div>
+    <div class="wa-stat"><div class="wa-stat-v" id="waFollowUp" style="color:var(--am)">0</div><div class="wa-stat-l">Follow-up</div></div>
+    <div class="wa-stat"><div class="wa-stat-v" id="waGenerated" style="color:var(--gold)">0</div><div class="wa-stat-l">Generated</div></div>
+  </div>
+
+  <!-- FILTER + GENERATE ALL -->
+  <div class="wa-filter-bar">
+    <button class="wa-filter-btn active" onclick="waFilter('all',this)">All Contacts</button>
+    <button class="wa-filter-btn" onclick="waFilter('urgent',this)">⚠ Urgent (14d+)</button>
+    <button class="wa-filter-btn" onclick="waFilter('followup',this)">🔔 Follow-up (7d+)</button>
+    <button class="wa-filter-btn" onclick="waFilter('hot',this)">🔥 Hot Deals</button>
+    <div style="margin-left:auto;display:flex;gap:7px;">
+      <select id="waToneSelect" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;font-family:var(--sans);font-size:10px;color:var(--text);outline:none;">
+        <option value="professional">Professional</option>
+        <option value="friendly">Friendly & warm</option>
+        <option value="urgent">Create urgency</option>
+        <option value="value">Lead with value</option>
+        <option value="arabic">Arabic greeting</option>
+      </select>
+      <button class="btn-g" onclick="generateAllMessages()" style="font-size:10px;padding:7px 14px;">⚡ Generate All</button>
+    </div>
+  </div>
+
+  <!-- CONTACT LIST -->
+  <div id="waContactList">
+    <div style="padding:30px;text-align:center;color:var(--t3);font-size:12px;">
+      Click <strong style="color:var(--gold)">⚡ Generate All</strong> to create personalised WhatsApp messages for all your contacts — or use the filters to focus on urgent ones first.
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ════════════ MORNING BRIEFING ════════════ -->
+<div id="page-briefing" class="page">
+
+  <!-- HERO -->
+  <div class="brief-hero">
+    <div class="brief-hero-left">
+      <h2>☀ Good <em id="briefGreeting">Morning</em></h2>
+      <p id="briefSubtitle">Loading your daily briefing…</p>
+    </div>
+    <div style="text-align:right;">
+      <div class="brief-time" id="briefClock">--:--</div>
+      <div class="brief-date" id="briefDateStr"></div>
+      <button class="ab" onclick="loadBriefing()" style="margin-top:8px;">↻ Refresh</button>
+    </div>
+  </div>
+
+  <!-- TOP ACTIONS -->
+  <div class="brief-section">
+    <div class="brief-section-hd">
+      <div class="brief-section-title"><span style="color:var(--cr)">🎯</span> Your Top Actions Today</div>
+      <span id="briefActionCount" style="font-family:var(--mono);font-size:9px;color:var(--t3);"></span>
+    </div>
+    <div class="brief-section-body" id="briefActions">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="skel" style="width:90%;height:16px;"></div>
+        <div class="skel" style="width:75%;height:16px;"></div>
+        <div class="skel" style="width:82%;height:16px;"></div>
+        <div class="skel" style="width:68%;height:16px;"></div>
+        <div class="skel" style="width:78%;height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-COL: DEALS + CALLS -->
+  <div class="g2">
+
+    <!-- HOT DEALS TODAY -->
+    <div class="brief-section" style="margin-bottom:0;">
+      <div class="brief-section-hd">
+        <div class="brief-section-title"><span style="color:var(--em)">🔥</span> Hot Deals — Action Needed</div>
+      </div>
+      <div class="brief-section-body" id="briefDeals"></div>
+    </div>
+
+    <!-- CALLS TO MAKE -->
+    <div class="brief-section" style="margin-bottom:0;">
+      <div class="brief-section-hd">
+        <div class="brief-section-title"><span style="color:var(--sa)">📞</span> Calls to Make Today</div>
+        <span id="briefCallCount" style="font-family:var(--mono);font-size:9px;color:var(--t3);"></span>
+      </div>
+      <div class="brief-section-body" id="briefCalls"></div>
+    </div>
+
+  </div>
+
+  <!-- MARKET SNAPSHOT -->
+  <div class="brief-section" style="margin-top:14px;">
+    <div class="brief-section-hd">
+      <div class="brief-section-title"><span style="color:var(--gold)">📊</span> Market Snapshot</div>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--t3);" id="briefMktDate"></span>
+    </div>
+    <div class="brief-section-body" id="briefMarket">
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="skel" style="width:88%;height:13px;"></div>
+        <div class="skel" style="width:72%;height:13px;"></div>
+        <div class="skel" style="width:80%;height:13px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI COACH BRIEF -->
+  <div class="brief-section">
+    <div class="brief-section-hd">
+      <div class="brief-section-title"><span style="color:var(--cr)">🔥</span> Coach Says</div>
+    </div>
+    <div class="brief-section-body" id="briefCoach">
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div class="skel" style="width:90%;height:13px;"></div>
+        <div class="skel" style="width:75%;height:13px;"></div>
+        <div class="skel" style="width:83%;height:13px;"></div>
+      </div>
     </div>
   </div>
 
@@ -3839,6 +4090,421 @@ function checkApiKey(){
     }, 3000);
   }
 })();
+
+
+// ════════════════════════════════════════
+//  WHATSAPP GENERATOR ENGINE
+// ════════════════════════════════════════
+var waFilter_current = 'all';
+var waSentToday      = JSON.parse(localStorage.getItem('waSent_'+new Date().toDateString())||'[]');
+var waGenCount       = 0;
+var waMessages       = {}; // cache generated messages by contact index
+
+function waFilter(type, btn){
+  waFilter_current = type;
+  document.querySelectorAll('.wa-filter-btn').forEach(function(b){ b.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  renderWAList();
+}
+
+function getWAContacts(){
+  var all = D.contacts.map(function(c,i){ return Object.assign({},c,{_idx:i}); });
+  if(waFilter_current === 'urgent')   return all.filter(function(c){ return c.days >= 14; });
+  if(waFilter_current === 'followup') return all.filter(function(c){ return c.days >= 7; });
+  if(waFilter_current === 'hot')      return all.filter(function(c){ return ['Offer Made','Under Offer','Viewing Done'].includes(c.stage); });
+  // Default: sort by priority — urgent first, then by days desc
+  return all.sort(function(a,b){ return b.days - a.days; });
+}
+
+function renderWAList(){
+  var contacts = getWAContacts();
+  var urgent   = D.contacts.filter(function(c){ return c.days >= 14; }).length;
+  var followup = D.contacts.filter(function(c){ return c.days >= 7 && c.days < 14; }).length;
+
+  document.getElementById('waUrgent').textContent   = urgent;
+  document.getElementById('waFollowUp').textContent = followup;
+  document.getElementById('waSent').textContent     = waSentToday.length;
+  document.getElementById('waGenerated').textContent= waGenCount;
+
+  if(contacts.length === 0){
+    document.getElementById('waContactList').innerHTML =
+      '<div style="padding:30px;text-align:center;color:var(--t3);font-size:12px;">No contacts match this filter.</div>';
+    return;
+  }
+
+  document.getElementById('waContactList').innerHTML = contacts.map(function(c){
+    var f    = flag(c);
+    var msg  = waMessages[c._idx];
+    var sent = waSentToday.indexOf(c._idx) > -1;
+    var urgentCls = c.days >= 14 ? 'var(--cr)' : c.days >= 7 ? 'var(--am)' : 'var(--em)';
+
+    var msgBlock = msg
+      ? '<div class="wac-msg">' + msg + '</div>'
+      : '<div class="wac-msg loading">Click ⚡ Generate to create a personalised message…</div>';
+
+    var sentBadge = sent ? '<span style="font-size:10px;color:var(--em);margin-left:4px;">✓ Sent</span>' : '';
+
+    var actionsHtml;
+    if(msg){
+      actionsHtml = '<div class="wac-actions">'
+        + '<button class="wa-send-btn" data-widx="'+c._idx+'" data-wphone="'+encodeURIComponent(c.phone||'')+'" onclick="waSendBtn(this)">📱 Open WhatsApp</button>'
+        + '<button class="wa-copy-btn" data-widx="'+c._idx+'" onclick="waCopyBtn(this)">📋 Copy</button>'
+        + '<button class="wa-regen-btn" data-widx="'+c._idx+'" onclick="waRegenBtn(this)" title="Regenerate">↻</button>'
+        + sentBadge
+        + '</div>';
+    } else {
+      actionsHtml = '<div class="wac-actions"><button class="btn-g" data-widx="'+c._idx+'" onclick="waGenBtn(this)" style="font-size:10px;padding:7px 13px;">⚡ Generate</button></div>';
+    }
+
+    return '<div class="wa-contact-card" id="wac-'+c._idx+'">'
+      + '<div class="wac-info">'
+        + '<div class="wac-name">' + c.name
+          + '<span class="chip ' + f.cl + '" style="margin-left:7px;">' + f.lb + '</span>'
+          + (sent ? '<span style="margin-left:6px;font-size:9px;color:var(--em);">✓ Sent today</span>' : '')
+        + '</div>'
+        + '<div class="wac-meta">'
+          + '<span>👤 ' + (c.type||'Contact') + '</span>'
+          + '<span>📍 ' + (c.stage||'Lead') + '</span>'
+          + '<span style="color:' + urgentCls + '">⏱ ' + c.days + ' days ago</span>'
+          + (c.value ? '<span>💰 ' + fmt(c.value) + '</span>' : '')
+          + (c.phone ? '<span>📱 ' + c.phone + '</span>' : '')
+        + '</div>'
+        + msgBlock
+        + actionsHtml
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+async function waGenOne(idx){
+  var c = D.contacts[idx];
+  if(!c) return;
+  if(!checkApiKey()) return;
+  var tone = document.getElementById('waToneSelect').value;
+
+  // Show loading state
+  var card = document.getElementById('wac-'+idx);
+  if(card){
+    var msgEl = card.querySelector('.wac-msg');
+    if(msgEl){ msgEl.textContent = 'Generating personalised message…'; msgEl.className = 'wac-msg loading'; }
+  }
+
+  var toneInstructions = {
+    professional: 'Professional and polished — like a top Dubai broker',
+    friendly:     'Warm and friendly — like catching up with someone you know',
+    urgent:       'Create subtle urgency — market moving, do not miss out',
+    value:        'Lead with value — give them something useful first',
+    arabic:       'Start with Arabic greeting (As-salamu alaykum or Marhaba) then English',
+  };
+
+  var prompt = 'Write a WhatsApp message for a Dubai real estate broker to send to a contact.\n\n'
+    + 'CONTACT DETAILS:\n'
+    + '- Name: ' + c.name + '\n'
+    + '- Type: ' + (c.type||'Buyer') + '\n'
+    + '- Stage: ' + (c.stage||'Lead') + '\n'
+    + '- Last contacted: ' + c.days + ' days ago\n'
+    + '- Deal value: ' + (c.value ? fmt(c.value) : 'Unknown') + '\n'
+    + (c.notes ? '- Notes: ' + c.notes + '\n' : '')
+    + (c.nationality ? '- Nationality: ' + c.nationality + '\n' : '')
+    + '\nTONE: ' + toneInstructions[tone] + '\n'
+    + '\nRULES:\n'
+    + '- Max 3 sentences — WhatsApp messages must be short\n'
+    + '- Use their first name naturally\n'
+    + '- Reference their stage/situation specifically\n'
+    + '- End with a soft call to action — a question or suggestion\n'
+    + '- Sound human, not like a template\n'
+    + '- Dubai context — reference market, timing, or specific value\n'
+    + '\nReturn ONLY the message text — no labels, no quotes, no explanation.';
+
+  try{
+    var res = await fetch('https://workerjs.karkarren02.workers.dev', {
+      method:'POST', headers: getApiHeaders(),
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514', max_tokens:200,
+        messages:[{role:'user', content:prompt}]
+      })
+    });
+    var data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    var text = data.content && data.content.length > 0
+      ? data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim()
+      : 'Could not generate message.';
+
+    waMessages[idx] = text;
+    waGenCount++;
+    document.getElementById('waGenerated').textContent = waGenCount;
+    renderWAList(); // re-render to show message + buttons
+  } catch(e){
+    if(card){
+      var msgEl2 = card.querySelector('.wac-msg');
+      if(msgEl2){ msgEl2.textContent = 'Error: ' + e.message; msgEl2.className = 'wac-msg'; }
+    }
+  }
+}
+
+async function generateAllMessages(){
+  if(!checkApiKey()) return;
+  var contacts = getWAContacts();
+  toast('⚡ Generating ' + contacts.length + ' messages — this will take a moment…');
+  // Generate sequentially to avoid rate limits
+  for(var i = 0; i < contacts.length; i++){
+    await waGenOne(contacts[i]._idx);
+    await new Promise(function(r){ setTimeout(r, 300); }); // small delay
+  }
+  toast('✓ All messages generated — ready to send');
+}
+
+function waSend(idx, encodedPhone){
+  var msg = waMessages[idx];
+  if(!msg){ toast('Generate a message first.', true); return; }
+  var phone = '';
+  try{ phone = decodeURIComponent(encodedPhone||'').replace(/[^0-9+]/g,''); }catch(e){ phone=''; }
+  var encoded = encodeURIComponent(msg);
+  var url = phone
+    ? 'https://wa.me/' + phone.replace('+','') + '?text=' + encoded
+    : 'https://wa.me/?text=' + encoded;
+  window.open(url, '_blank');
+  // Mark as sent
+  if(waSentToday.indexOf(idx) === -1){
+    waSentToday.push(idx);
+    localStorage.setItem('waSent_'+new Date().toDateString(), JSON.stringify(waSentToday));
+    document.getElementById('waSent').textContent = waSentToday.length;
+    ac.followups++;
+    renderAll();
+  }
+}
+
+function waCopy(idx){
+  var msg = waMessages[idx];
+  if(!msg){ toast('Generate a message first.', true); return; }
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(msg).then(function(){
+      toast('✓ Message copied to clipboard');
+    });
+  } else {
+    toast('Message: ' + msg);
+  }
+}
+
+// Init WhatsApp page
+var _waInitDone = false;
+function initWhatsApp(){
+  renderWAList();
+}
+
+// ════════════════════════════════════════
+//  MORNING BRIEFING ENGINE
+// ════════════════════════════════════════
+var _briefingInitDone = false;
+var briefingLoaded    = false;
+
+// Live clock
+function startBriefingClock(){
+  function tick(){
+    var now  = new Date();
+    var h    = String(now.getHours()).padStart(2,'0');
+    var m    = String(now.getMinutes()).padStart(2,'0');
+    var el   = document.getElementById('briefClock');
+    if(el) el.textContent = h + ':' + m;
+    var greet= now.getHours() < 12 ? 'Morning' : now.getHours() < 17 ? 'Afternoon' : 'Evening';
+    var gel  = document.getElementById('briefGreeting');
+    if(gel) gel.textContent = greet;
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var mons = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    var ds   = days[now.getDay()]+', '+now.getDate()+' '+mons[now.getMonth()]+' '+now.getFullYear();
+    var del2 = document.getElementById('briefDateStr');
+    if(del2) del2.textContent = ds;
+    var mdt  = document.getElementById('briefMktDate');
+    if(mdt) mdt.textContent = ds;
+  }
+  tick();
+  setInterval(tick, 30000);
+}
+
+function renderBriefingLocal(){
+  // ── TOP ACTIONS (from live data, no API needed) ──
+  var urgent  = D.contacts.filter(function(c){ return c.days >= 14; });
+  var followup= D.contacts.filter(function(c){ return c.days >= 7 && c.days < 14; });
+  var hot     = D.pipeline.filter(function(d){ return ['Offer Made','Under Offer'].includes(d.stage); });
+  var stale   = D.listings.filter(function(l){ return l.days > 45 && !l.listed; });
+  var disc    = habits.filter(function(h){ return h.done; }).reduce(function(s,h){return s+h.pts;},0);
+  var score   = calcScore ? calcScore() : 70;
+
+  // Build action list
+  var actions = [];
+  urgent.slice(0,3).forEach(function(c){
+    actions.push({cls:'urgent', title:'Call '+c.name+' — '+c.days+' days silent', sub:c.type+' · '+c.stage+' · '+fmt(c.value), cta:'urgent'});
+  });
+  hot.slice(0,2).forEach(function(d){
+    actions.push({cls:'hot', title:'Follow up on '+d.name, sub:d.stage+' · '+fmt(d.value)+' — push to close', cta:'hot'});
+  });
+  followup.slice(0,2).forEach(function(c){
+    actions.push({cls:'normal', title:'Check in with '+c.name, sub:c.type+' · '+c.days+' days ago · '+fmt(c.value), cta:'normal'});
+  });
+  if(stale.length > 0){
+    actions.push({cls:'normal', title:'Review '+stale.length+' stale listing'+(stale.length>1?'s':''), sub:'Properties over 45 days on market — price review needed', cta:'normal'});
+  }
+  if(disc < 50){
+    actions.push({cls:'normal', title:'Complete your morning habits', sub:'Discipline score: '+disc+'/100 — habits are the foundation', cta:'normal'});
+  }
+  if(actions.length === 0){
+    actions.push({cls:'hot', title:'You are on top of everything!', sub:'Score: '+score+'/100 — keep the momentum going', cta:'hot'});
+  }
+
+  var actionCount = document.getElementById('briefActionCount');
+  if(actionCount) actionCount.textContent = actions.length + ' actions';
+
+  document.getElementById('briefActions').innerHTML = actions.map(function(a, i){
+    return '<div class="brief-action-item">'
+      + '<div class="bai-num '+a.cta+'">'+(i+1)+'</div>'
+      + '<div class="bai-content">'
+        + '<div class="bai-title">'+a.title+'</div>'
+        + '<div class="bai-sub">'+a.sub+'</div>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  // ── HOT DEALS ──
+  var dealsHtml = hot.length > 0
+    ? hot.map(function(d){
+        return '<div class="brief-action-item">'
+          + '<div class="bai-num hot">🔥</div>'
+          + '<div class="bai-content">'
+            + '<div class="bai-title">'+d.name+'</div>'
+            + '<div class="bai-sub">'+d.stage+' · '+fmt(d.value)+' · '+d.days+' days open</div>'
+            + '<div class="bai-action"><button class="ab" onclick="document.querySelectorAll(&quot;.tab&quot;)[1].click()">View Pipeline →</button></div>'
+          + '</div>'
+        + '</div>';
+      }).join('')
+    : '<div style="padding:10px 0;font-size:11px;color:var(--t3);">No hot deals right now — feed the pipeline.</div>';
+  document.getElementById('briefDeals').innerHTML = dealsHtml;
+
+  // ── CALLS TO MAKE ──
+  var callList = [...urgent, ...followup].slice(0, 8);
+  var callCount = document.getElementById('briefCallCount');
+  if(callCount) callCount.textContent = callList.length + ' contacts';
+
+  document.getElementById('briefCalls').innerHTML = callList.length > 0
+    ? callList.map(function(c){
+        var urgClass = c.days >= 14 ? 'var(--cr)' : 'var(--am)';
+        return '<div class="brief-market-item">'
+          + '<div class="bmi-icon">' + (c.days >= 14 ? '⚠' : '📞') + '</div>'
+          + '<div class="bmi-text"><strong>'+c.name+'</strong> — '+c.type+', '+c.stage+'</div>'
+          + '<div class="bmi-val" style="color:'+urgClass+'">'+c.days+'d</div>'
+        + '</div>';
+      }).join('')
+    : '<div style="padding:10px 0;font-size:11px;color:var(--t3);">All contacts up to date ✓</div>';
+
+  // ── SUBTITLE ──
+  var sub = document.getElementById('briefSubtitle');
+  if(sub){
+    sub.textContent = urgent.length + ' urgent · ' + hot.length + ' hot deals · Score ' + score + '/100 · ' + D.contacts.length + ' contacts';
+  }
+}
+
+async function loadBriefingAI(){
+  // Market snapshot via AI + web search
+  var mktEl   = document.getElementById('briefMarket');
+  var coachEl = document.getElementById('briefCoach');
+
+  if(mktEl) mktEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:7px;"><div class="skel" style="width:88%;height:13px;"></div><div class="skel" style="width:72%;height:13px;"></div><div class="skel" style="width:80%;height:13px;"></div></div>';
+  if(coachEl) coachEl.innerHTML = '<div style="display:flex;flex-direction:column;gap:7px;"><div class="skel" style="width:90%;height:13px;"></div><div class="skel" style="width:75%;height:13px;"></div></div>';
+
+  if(!_apiKey){ 
+    if(mktEl) mktEl.innerHTML = '<p style="color:var(--t3);font-size:11px;">Set API key in Connect tab to load live market data.</p>';
+    if(coachEl) coachEl.innerHTML = '<p style="color:var(--t3);font-size:11px;">Set API key in Connect tab to load coach briefing.</p>';
+    return;
+  }
+
+  // Market snapshot
+  try{
+    var score  = calcScore ? calcScore() : 70;
+    var urgent = D.contacts.filter(function(c){ return c.days >= 14; }).length;
+    var wc     = wcomm ? Math.round(wcomm()) : 0;
+    var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var today  = days[new Date().getDay()];
+
+    // Run both calls in parallel
+    var [mktRes, coachRes] = await Promise.all([
+      fetch('https://workerjs.karkarren02.workers.dev', {
+        method:'POST', headers: getApiHeaders(),
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514', max_tokens:350,
+          tools:[{type:'web_search_20250305',name:'web_search'}],
+          system:'You are a Dubai real estate market analyst. Be brief and data-specific.',
+          messages:[{role:'user',content:'Search dxbinteract.com and DLD for latest Dubai real estate news and data from the last 24-48 hours. Give exactly 4 bullet points for a broker morning briefing — key market moves, transaction data, or area trends. Each bullet max 15 words. Start each with an emoji.'}]
+        })
+      }),
+      fetch('https://workerjs.karkarren02.workers.dev', {
+        method:'POST', headers: getApiHeaders(),
+        body: JSON.stringify({
+          model:'claude-sonnet-4-20250514', max_tokens:250,
+          system: 'You are an elite Dubai real estate performance coach. Be direct, punchy, motivating.',
+          messages:[{role:'user',content:'Good '+( new Date().getHours()<12?'morning':new Date().getHours()<17?'afternoon':'evening')+'! My stats: Score='+score+'/100, Urgent contacts='+urgent+', Weighted pipeline=AED '+Math.round(wc/1000)+'K, Today is '+today+'. Give me my daily briefing in 3 punchy sentences — what to focus on, one specific action, one motivating close. Max 60 words total.'}]
+        })
+      })
+    ]);
+
+    var mktData   = await mktRes.json();
+    var coachData = await coachRes.json();
+
+    var mktText   = mktData.content   ? mktData.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('') : '';
+    var coachText = coachData.content ? coachData.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('') : '';
+
+    // Render market
+    if(mktEl){
+      var lines = mktText.split('\n').filter(function(l){ return l.trim().length > 5; });
+      mktEl.innerHTML = lines.map(function(l){
+        return '<div class="brief-market-item">'
+          + '<div class="bmi-text">'+l.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')+'</div>'
+        + '</div>';
+      }).join('');
+    }
+
+    // Render coach
+    if(coachEl){
+      coachEl.innerHTML = '<div style="font-size:13px;line-height:1.8;color:var(--t2);">'
+        + coachText.replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--text)">$1</strong>').replace(/\n/g,'<br>')
+        + '</div>';
+    }
+
+  } catch(e){
+    if(mktEl)   mktEl.innerHTML   = '<p style="color:var(--cr);font-size:11px;">Could not load market data.</p>';
+    if(coachEl) coachEl.innerHTML = '<p style="color:var(--cr);font-size:11px;">Could not load coach briefing.</p>';
+  }
+}
+
+function loadBriefing(){
+  renderBriefingLocal();
+  loadBriefingAI();
+}
+
+function initBriefing(){
+  if(_briefingInitDone) return;
+  _briefingInitDone = true;
+  startBriefingClock();
+  loadBriefing();
+}
+
+// ── Hook nav for WhatsApp + Briefing ──
+var _origNav3 = nav;
+nav = function(name, btn){
+  _origNav3(name, btn);
+  if(name === 'whatsapp'){ initWhatsApp(); renderWAList(); }
+  if(name === 'briefing') { _briefingInitDone = false; initBriefing(); }
+};
+var _origMobNav3 = mobNav;
+mobNav = function(name, btn){
+  _origMobNav3(name, btn);
+  if(name === 'whatsapp'){ initWhatsApp(); renderWAList(); }
+  if(name === 'briefing') { _briefingInitDone = false; initBriefing(); }
+};
+
+
+function waSendBtn(btn){ waSend(parseInt(btn.getAttribute('data-widx')), btn.getAttribute('data-wphone')); }
+function waCopyBtn(btn){ waCopy(parseInt(btn.getAttribute('data-widx'))); }
+function waRegenBtn(btn){ waGenOne(parseInt(btn.getAttribute('data-widx'))); }
+function waGenBtn(btn){ waGenOne(parseInt(btn.getAttribute('data-widx'))); }
 
 </script>
 </body>
