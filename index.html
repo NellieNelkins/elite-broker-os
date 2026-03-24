@@ -1102,6 +1102,175 @@ tr:hover .del-btn{opacity:1;}
   .brief-time{font-size:24px;}
 }
 
+
+/* ── WHATSAPP WEB CONNECT ── */
+.wa-connect-banner{
+  background:linear-gradient(135deg,rgba(37,211,102,.1),rgba(37,211,102,.04));
+  border:1px solid rgba(37,211,102,.25);border-radius:13px;
+  padding:16px 20px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;
+}
+.wa-connect-banner.connected{
+  background:linear-gradient(135deg,rgba(37,211,102,.14),rgba(37,211,102,.06));
+  border-color:rgba(37,211,102,.4);
+}
+.wacb-left{display:flex;align-items:center;gap:12px;}
+.wacb-icon{width:42px;height:42px;border-radius:50%;background:rgba(37,211,102,.15);border:2px solid rgba(37,211,102,.3);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.wacb-icon.connected{background:rgba(37,211,102,.2);border-color:#25D366;animation:breathe 3s ease-in-out infinite;}
+.wacb-text h3{font-size:13px;font-weight:600;margin-bottom:2px;}
+.wacb-text p{font-size:10px;color:var(--t2);line-height:1.5;}
+.wacb-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.wa-connect-btn{
+  display:flex;align-items:center;gap:7px;
+  background:#25D366;border:none;color:#fff;
+  padding:9px 18px;border-radius:8px;
+  font-family:var(--sans);font-size:11px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;
+}
+.wa-connect-btn:hover{background:#1db954;transform:translateY(-1px);}
+.wa-connect-btn.disconnect{background:var(--s2);border:1px solid var(--border);color:var(--t2);}
+.wa-connect-btn.disconnect:hover{border-color:var(--cr);color:var(--cr);background:var(--cr-bg);}
+
+/* QR / iframe panel */
+.wa-web-panel{
+  background:var(--s1);border:1px solid rgba(37,211,102,.2);
+  border-radius:13px;overflow:hidden;margin-bottom:14px;
+  display:none;
+}
+.wa-web-panel.open{display:block;}
+.wa-web-panel-hd{
+  padding:11px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(37,211,102,.05);
+}
+.wa-web-panel-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#25D366;display:flex;align-items:center;gap:7px;}
+.wa-web-frame{
+  width:100%;height:680px;border:none;
+  background:#fff;
+}
+.wa-status-dot{width:8px;height:8px;border-radius:50%;background:#25D366;display:inline-block;animation:blink 2s infinite;}
+.wa-msg-status{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:4px;
+  background:rgba(37,211,102,.1);border:1px solid rgba(37,211,102,.2);
+  font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#25D366;
+}
+
+
+/* WhatsApp Web connect bar */
+.wa-connect-bar{
+  background:linear-gradient(135deg,rgba(37,211,102,.1),rgba(37,211,102,.04));
+  border:1px solid rgba(37,211,102,.25);border-radius:13px;
+  padding:16px 20px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;
+}
+.wa-connect-left{display:flex;align-items:center;gap:13px;}
+.wa-connect-icon{
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(37,211,102,.15);border:1.5px solid rgba(37,211,102,.3);
+  display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;
+}
+.wa-connect-info h3{font-size:13px;font-weight:600;margin-bottom:2px;}
+.wa-connect-info p{font-size:10px;color:var(--t2);line-height:1.5;}
+.wa-connect-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.wa-web-btn{
+  display:flex;align-items:center;gap:7px;
+  background:#25D366;border:none;color:#fff;
+  padding:9px 18px;border-radius:9px;
+  font-family:var(--sans);font-size:11px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;cursor:pointer;
+  transition:all .15s;
+}
+.wa-web-btn:hover{background:#1db954;transform:translateY(-1px);box-shadow:0 4px 16px rgba(37,211,102,.35);}
+.wa-status-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--cr);display:inline-block;margin-right:4px;
+}
+.wa-status-dot.connected{background:var(--em);}
+.wa-sent-log{
+  background:var(--s2);border:1px solid var(--border);border-radius:10px;
+  padding:11px 14px;margin-top:10px;
+}
+.wa-sent-log h4{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+.wa-log-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:7px 0;border-bottom:1px solid var(--border);font-size:11px;
+}
+.wa-log-item:last-child{border-bottom:none;}
+.wa-log-name{font-weight:600;}
+.wa-log-time{font-family:var(--mono);font-size:9px;color:var(--t3);}
+.wa-log-msg{font-size:10px;color:var(--t2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:340px;}
+
+
+/* ══ COLD CALL LIST ══ */
+.wa-mode-tabs{display:flex;gap:0;background:var(--s2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.wa-mode-tab{flex:1;padding:10px 16px;background:none;border:none;font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--t3);cursor:pointer;transition:all .15s;text-align:center;border-right:1px solid var(--border);}
+.wa-mode-tab:last-child{border-right:none;}
+.wa-mode-tab.active{background:var(--s3);color:var(--gold);}
+.wa-mode-tab:hover:not(.active){color:var(--t2);}
+
+.cold-list-wrap{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;}
+.cold-list-hd{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--s2);}
+.cold-list-hd h3{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);}
+
+.cold-input-area{padding:14px 16px;border-bottom:1px solid var(--border);}
+.cold-paste-box{
+  width:100%;background:var(--s2);border:1.5px dashed var(--border2);
+  border-radius:9px;padding:12px 14px;
+  font-family:var(--mono);font-size:11px;color:var(--text);
+  outline:none;resize:vertical;min-height:110px;line-height:1.7;
+  transition:border-color .15s;
+}
+.cold-paste-box:focus{border-color:var(--gold-b);border-style:solid;}
+.cold-paste-box::placeholder{color:var(--t3);}
+.cold-input-row{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center;}
+.cold-hint{font-size:10px;color:var(--t3);margin-top:6px;line-height:1.6;}
+.cold-hint strong{color:var(--t2);}
+
+.cold-item{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:12px 16px;border-bottom:1px solid var(--border);
+  transition:background .1s;
+}
+.cold-item:last-child{border-bottom:none;}
+.cold-item:hover{background:rgba(255,255,255,.01);}
+.cold-item.called{opacity:.55;}
+.cold-item.called .cold-name{text-decoration:line-through;color:var(--t3);}
+
+.cold-check{
+  width:20px;height:20px;border-radius:5px;border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;margin-top:2px;transition:all .13s;font-size:10px;
+}
+.cold-check.done{background:var(--em-bg);border-color:var(--em);color:var(--em);}
+.cold-check.skipped{background:var(--cr-bg);border-color:var(--cr);color:var(--cr);}
+
+.cold-info{flex:1;}
+.cold-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.cold-phone{font-family:var(--mono);font-size:10px;color:var(--t2);}
+.cold-notes{font-size:10px;color:var(--t3);margin-top:2px;}
+.cold-tag{display:inline-flex;padding:1px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-left:6px;}
+
+.cold-actions{display:flex;gap:5px;align-items:flex-start;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.cold-msg-box{
+  background:var(--s3);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;font-size:11px;color:var(--t2);line-height:1.6;
+  margin-top:7px;
+}
+
+.cold-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px 16px;background:var(--s2);border-bottom:1px solid var(--border);}
+.cold-stat{text-align:center;}
+.cold-stat-v{font-family:var(--serif);font-size:18px;}
+.cold-stat-l{font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-top:2px;}
+
+@media(max-width:680px){
+  .cold-stats{grid-template-columns:repeat(2,1fr);}
+  .cold-actions{flex-direction:column;}
+}
+
 </style>
 </head>
 <body>
@@ -1906,6 +2075,79 @@ tr:hover .del-btn{opacity:1;}
 <!-- ════════════ WHATSAPP GENERATOR ════════════ -->
 <div id="page-whatsapp" class="page">
 
+  <!-- WHATSAPP WEB CONNECT BANNER -->
+  <div class="wa-connect-banner" id="waConnectBanner">
+    <div class="wacb-left">
+      <div class="wacb-icon" id="waConnectIcon">📱</div>
+      <div class="wacb-text">
+        <h3 id="waConnectTitle">Connect WhatsApp Web</h3>
+        <p id="waConnectDesc">Open WhatsApp Web in the panel below → scan QR with your phone → messages send directly and are tracked here automatically.</p>
+      </div>
+    </div>
+    <div class="wacb-actions">
+      <div id="waStatusBadge" style="display:none;" class="wa-msg-status"><span class="wa-status-dot"></span> Connected</div>
+      <button class="wa-connect-btn" id="waConnectBtn" onclick="toggleWAPanel()">📱 Open WhatsApp Web</button>
+    </div>
+  </div>
+
+  <!-- WHATSAPP WEB IFRAME PANEL -->
+  <div class="wa-web-panel" id="waWebPanel">
+    <div class="wa-web-panel-hd">
+      <div class="wa-web-panel-title">
+        <span class="wa-status-dot"></span>
+        WhatsApp Web — Scan QR code with your phone
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span style="font-size:9px;color:var(--t2);">Messages sent here are tracked automatically</span>
+        <button class="ab" onclick="refreshWAFrame()">↻ Refresh</button>
+        <button class="ab" onclick="toggleWAPanel()" style="color:var(--cr);">✕ Close</button>
+      </div>
+    </div>
+    <div style="padding:0;">
+      <!-- Instructions overlay shown before iframe loads -->
+      <div id="waFrameInstructions" style="padding:20px 24px;background:var(--s2);border-bottom:1px solid var(--border);">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;max-width:700px;margin:0 auto;">
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:26px;margin-bottom:6px;">📱</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);margin-bottom:3px;">Step 1</div>
+            <div style="font-size:10px;color:var(--t2);">Open WhatsApp on your phone</div>
+          </div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:26px;margin-bottom:6px;">⚙</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);margin-bottom:3px;">Step 2</div>
+            <div style="font-size:10px;color:var(--t2);">Tap Settings → Linked Devices</div>
+          </div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:26px;margin-bottom:6px;">📷</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);margin-bottom:3px;">Step 3</div>
+            <div style="font-size:10px;color:var(--t2);">Tap Link a Device → scan QR below</div>
+          </div>
+          <div style="text-align:center;padding:12px;">
+            <div style="font-size:26px;margin-bottom:6px;">✅</div>
+            <div style="font-size:10px;font-weight:700;color:var(--text);margin-bottom:3px;">Step 4</div>
+            <div style="font-size:10px;color:var(--t2);">WhatsApp Web opens — messages tracked</div>
+          </div>
+        </div>
+      </div>
+      <iframe
+        id="waWebFrame"
+        src="about:blank"
+        class="wa-web-frame"
+        allow="camera; microphone"
+        title="WhatsApp Web">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- MODE TABS -->
+  <div class="wa-mode-tabs">
+    <button class="wa-mode-tab active" onclick="waMode('contacts',this)">👥 My Contacts</button>
+    <button class="wa-mode-tab" onclick="waMode('cold',this)">🧊 Cold Call List</button>
+  </div>
+
+  <!-- CONTACTS MODE -->
+  <div id="waModeContacts">
+
   <!-- STATS -->
   <div class="wa-stats">
     <div class="wa-stat"><div class="wa-stat-v" id="waSent" style="color:var(--em)">0</div><div class="wa-stat-l">Sent Today</div></div>
@@ -1914,7 +2156,32 @@ tr:hover .del-btn{opacity:1;}
     <div class="wa-stat"><div class="wa-stat-v" id="waGenerated" style="color:var(--gold)">0</div><div class="wa-stat-l">Generated</div></div>
   </div>
 
-  <!-- FILTER + GENERATE ALL -->
+  
+  <!-- WHATSAPP WEB CONNECT BAR -->
+  <div class="wa-connect-bar">
+    <div class="wa-connect-left">
+      <div class="wa-connect-icon">💬</div>
+      <div class="wa-connect-info">
+        <h3><span class="wa-status-dot" id="waStatusDot"></span><span id="waStatusText">WhatsApp Web — Not connected</span></h3>
+        <p>Open WhatsApp Web in a tab, scan once, then send messages directly from here with full tracking.</p>
+      </div>
+    </div>
+    <div class="wa-connect-right">
+      <button class="wa-web-btn" onclick="openWhatsAppWeb()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        Open WhatsApp Web
+      </button>
+      <button class="ab" onclick="checkWAConnection()" style="font-size:10px;">↻ Check Status</button>
+    </div>
+  </div>
+
+  <!-- SENT LOG -->
+  <div class="wa-sent-log" id="waSentLog" style="display:none;">
+    <h4>📋 Sent Today — <span id="waSentLogCount">0</span> messages</h4>
+    <div id="waSentLogItems"></div>
+  </div>
+
+<!-- FILTER + GENERATE ALL -->
   <div class="wa-filter-bar">
     <button class="wa-filter-btn active" onclick="waFilter('all',this)">All Contacts</button>
     <button class="wa-filter-btn" onclick="waFilter('urgent',this)">⚠ Urgent (14d+)</button>
@@ -1938,6 +2205,86 @@ tr:hover .del-btn{opacity:1;}
       Click <strong style="color:var(--gold)">⚡ Generate All</strong> to create personalised WhatsApp messages for all your contacts — or use the filters to focus on urgent ones first.
     </div>
   </div>
+
+  </div><!-- /waContactList -->
+  </div><!-- /waModeContacts -->
+
+  <!-- COLD CALL LIST MODE -->
+  <div id="waModeColdd" style="display:none;">
+
+    <div class="cold-list-wrap">
+      <div class="cold-list-hd">
+        <h3>🧊 Cold Call List</h3>
+        <div style="display:flex;gap:7px;">
+          <button class="ab" onclick="clearCalledItems()">Clear Called</button>
+          <button class="ab" onclick="clearColdList()">Clear All</button>
+          <button class="btn-g" onclick="genAllColdMessages()" style="font-size:10px;padding:6px 13px;">⚡ Generate All Messages</button>
+        </div>
+      </div>
+
+      <!-- COLD LIST STATS -->
+      <div class="cold-stats">
+        <div class="cold-stat"><div class="cold-stat-v" id="coldTotal" style="color:var(--gold)">0</div><div class="cold-stat-l">Total</div></div>
+        <div class="cold-stat"><div class="cold-stat-v" id="coldCalled" style="color:var(--em)">0</div><div class="cold-stat-l">Called</div></div>
+        <div class="cold-stat"><div class="cold-stat-v" id="coldRemaining" style="color:var(--am)">0</div><div class="cold-stat-l">Remaining</div></div>
+        <div class="cold-stat"><div class="cold-stat-v" id="coldSkipped" style="color:var(--cr)">0</div><div class="cold-stat-l">Skipped</div></div>
+      </div>
+
+      <!-- PASTE / ADD INPUT -->
+      <div class="cold-input-area">
+        <textarea class="cold-paste-box" id="coldPasteBox" placeholder="Paste your list here — one contact per line. Formats accepted:&#10;&#10;Ahmed Al Mansoori, +971501234567, Investor, interested in Marina&#10;Priya Sharma +971551234567&#10;John Mitchell | 0501234567 | buyer&#10;Sara Al Zaabi&#10;&#10;Name is required. Phone, type, and notes are optional."></textarea>
+        <div class="cold-input-row">
+          <select id="coldDefaultType" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--sans);font-size:10px;color:var(--text);outline:none;">
+            <option value="Cold Lead">Cold Lead</option>
+            <option value="Buyer">Buyer</option>
+            <option value="Seller">Seller</option>
+            <option value="Investor">Investor</option>
+            <option value="Landlord">Landlord</option>
+          </select>
+          <select id="coldToneSelect" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:6px 10px;font-family:var(--sans);font-size:10px;color:var(--text);outline:none;">
+            <option value="cold_intro">Cold intro — professional</option>
+            <option value="cold_value">Lead with value</option>
+            <option value="cold_urgent">Market urgency</option>
+            <option value="cold_arabic">Arabic greeting</option>
+            <option value="cold_referral">Referral mention</option>
+          </select>
+          <button class="btn-g" onclick="parseColdList()" style="font-size:10px;padding:7px 14px;">+ Add to List</button>
+          <button class="ab" onclick="addSingleCold()">+ Add One</button>
+        </div>
+        <div class="cold-hint">
+          <strong>Tip:</strong> Paste directly from Excel, WhatsApp, or any list. Separate fields with comma, pipe |, or tab. Phone numbers with country code (+971) open WhatsApp directly.
+        </div>
+      </div>
+
+      <!-- SINGLE ADD FORM (hidden by default) -->
+      <div id="coldSingleForm" style="display:none;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--s2);">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:4px;">Name *</div>
+            <input id="coldSingleName" class="odinput" placeholder="Full name" style="width:100%;"/>
+          </div>
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:4px;">Phone</div>
+            <input id="coldSinglePhone" class="odinput" placeholder="+971 50 123 4567" style="width:100%;"/>
+          </div>
+          <div>
+            <div style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:4px;">Notes</div>
+            <input id="coldSingleNotes" class="odinput" placeholder="Area, interest, source…" style="width:100%;"/>
+          </div>
+        </div>
+        <button class="btn-g" onclick="addColdItem()" style="font-size:10px;padding:7px 16px;">Add Contact</button>
+        <button class="ab" onclick="document.getElementById('coldSingleForm').style.display='none'" style="margin-left:7px;">Cancel</button>
+      </div>
+
+      <!-- LIST -->
+      <div id="coldListItems">
+        <div style="padding:30px;text-align:center;color:var(--t3);font-size:12px;">
+          Paste your cold call list above and click <strong style="color:var(--gold)">+ Add to List</strong>
+        </div>
+      </div>
+
+    </div><!-- /cold-list-wrap -->
+  </div><!-- /waModeColdd -->
 
 </div>
 
@@ -4505,6 +4852,604 @@ function waSendBtn(btn){ waSend(parseInt(btn.getAttribute('data-widx')), btn.get
 function waCopyBtn(btn){ waCopy(parseInt(btn.getAttribute('data-widx'))); }
 function waRegenBtn(btn){ waGenOne(parseInt(btn.getAttribute('data-widx'))); }
 function waGenBtn(btn){ waGenOne(parseInt(btn.getAttribute('data-widx'))); }
+
+
+// ════════════════════════════════════════
+//  WHATSAPP WEB INTEGRATION
+// ════════════════════════════════════════
+var waWebConnected  = false;
+var waWebPanelOpen  = false;
+var waFrameLoaded   = false;
+
+function toggleWAPanel(){
+  var panel  = document.getElementById('waWebPanel');
+  var btn    = document.getElementById('waConnectBtn');
+  var banner = document.getElementById('waConnectBanner');
+
+  if(waWebPanelOpen){
+    panel.classList.remove('open');
+    waWebPanelOpen = false;
+    btn.textContent = '📱 Open WhatsApp Web';
+    btn.className = 'wa-connect-btn';
+  } else {
+    panel.classList.add('open');
+    waWebPanelOpen = true;
+    btn.textContent = '✕ Close Panel';
+    btn.className = 'wa-connect-btn disconnect';
+    banner.classList.add('connected');
+    // Load WhatsApp Web in iframe
+    if(!waFrameLoaded){
+      loadWAFrame();
+    }
+    // Scroll to panel
+    panel.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function loadWAFrame(){
+  var frame = document.getElementById('waWebFrame');
+  if(!frame) return;
+  frame.src = 'https://web.whatsapp.com';
+  waFrameLoaded = true;
+
+  // Update UI to show connected state
+  setTimeout(function(){
+    var icon  = document.getElementById('waConnectIcon');
+    var title = document.getElementById('waConnectTitle');
+    var desc  = document.getElementById('waConnectDesc');
+    var badge = document.getElementById('waStatusBadge');
+    if(icon)  { icon.textContent = '✅'; icon.classList.add('connected'); }
+    if(title) title.textContent = 'WhatsApp Web Active';
+    if(desc)  desc.textContent  = 'Scan the QR code in the panel below with your phone to connect. Once connected, messages will send directly from WhatsApp Web.';
+    if(badge) badge.style.display = 'inline-flex';
+    waWebConnected = true;
+    localStorage.setItem('waWebConnected', '1');
+    toast('📱 WhatsApp Web loaded — scan QR code with your phone');
+  }, 1500);
+}
+
+function refreshWAFrame(){
+  var frame = document.getElementById('waWebFrame');
+  if(frame){ frame.src = 'https://web.whatsapp.com'; }
+  toast('↻ WhatsApp Web refreshed');
+}
+
+// Override waSend to use WhatsApp Web if connected, else fallback to wa.me
+var _origWaSend = waSend;
+waSend = function(idx, encodedPhone){
+  var msg = waMessages[idx];
+  if(!msg){ toast('Generate a message first.', true); return; }
+
+  var phone = '';
+  try{ phone = decodeURIComponent(encodedPhone||'').replace(/[^0-9+]/g,''); }catch(e){ phone=''; }
+
+  if(waWebConnected && waFrameLoaded){
+    // Send via WhatsApp Web iframe
+    sendViaWAWeb(phone, msg, idx);
+  } else {
+    // Fallback: open wa.me link
+    var encoded = encodeURIComponent(msg);
+    var url = phone
+      ? 'https://wa.me/' + phone.replace('+','') + '?text=' + encoded
+      : 'https://wa.me/?text=' + encoded;
+    window.open(url, '_blank');
+    markWASent(idx);
+  }
+};
+
+function sendViaWAWeb(phone, msg, idx){
+  // Open WhatsApp Web panel if not open
+  if(!waWebPanelOpen) toggleWAPanel();
+
+  var frame = document.getElementById('waWebFrame');
+  if(!frame){ fallbackWAOpen(phone, msg, idx); return; }
+
+  // Construct WhatsApp Web URL with phone and message
+  var waUrl;
+  if(phone){
+    var cleanPhone = phone.replace(/[^0-9]/g,'');
+    waUrl = 'https://web.whatsapp.com/send?phone=' + cleanPhone + '&text=' + encodeURIComponent(msg);
+  } else {
+    // No phone — open WA Web and let user pick contact
+    waUrl = 'https://web.whatsapp.com';
+    toast('📋 No phone number saved — message copied. Open the contact in WhatsApp Web and paste.', false);
+    if(navigator.clipboard) navigator.clipboard.writeText(msg);
+  }
+
+  frame.src = waUrl;
+  markWASent(idx);
+
+  // Show instruction toast
+  toast('📱 Opening in WhatsApp Web — review and tap Send');
+
+  // Scroll to frame
+  frame.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function fallbackWAOpen(phone, msg, idx){
+  var encoded = encodeURIComponent(msg);
+  var url = phone
+    ? 'https://wa.me/' + phone.replace('+','') + '?text=' + encoded
+    : 'https://wa.me/?text=' + encoded;
+  window.open(url, '_blank');
+  markWASent(idx);
+}
+
+function markWASent(idx){
+  if(waSentToday.indexOf(idx) === -1){
+    waSentToday.push(idx);
+    localStorage.setItem('waSent_'+new Date().toDateString(), JSON.stringify(waSentToday));
+    document.getElementById('waSent').textContent = waSentToday.length;
+    ac.followups++;
+    // Log to activity
+    toast('✓ Message sent — follow-up logged');
+    renderAll();
+  }
+}
+
+// Restore connection state on page load
+(function(){
+  if(localStorage.getItem('waWebConnected') === '1'){
+    waWebConnected = true;
+    var icon  = document.getElementById('waConnectIcon');
+    var title = document.getElementById('waConnectTitle');
+    var badge = document.getElementById('waStatusBadge');
+    var desc  = document.getElementById('waConnectDesc');
+    if(icon)  { icon.textContent = '✅'; icon.classList.add('connected'); }
+    if(title) title.textContent = 'WhatsApp Web Ready';
+    if(desc)  desc.textContent  = 'Previously connected. Click Open WhatsApp Web to reconnect and start sending messages directly.';
+    if(badge) badge.style.display = 'inline-flex';
+  }
+})();
+
+// Track sent count from localStorage
+(function(){
+  var todayKey = 'waSent_'+new Date().toDateString();
+  var saved = localStorage.getItem(todayKey);
+  if(saved){
+    try{ waSentToday = JSON.parse(saved); }catch(e){ waSentToday=[]; }
+    var el = document.getElementById('waSent');
+    if(el) el.textContent = waSentToday.length;
+  }
+})();
+
+
+// ════════════════════════════════════════
+//  WHATSAPP WEB INTEGRATION
+// ════════════════════════════════════════
+var waWebTab       = null;   // reference to opened WhatsApp Web tab
+var waConnected    = false;
+var waSentLog      = JSON.parse(localStorage.getItem('waSentLog_'+new Date().toDateString())||'[]');
+var waWebCheckInterval = null;
+
+function openWhatsAppWeb(){
+  // Open WhatsApp Web in new tab
+  waWebTab = window.open('https://web.whatsapp.com', '_blank', 'width=1100,height=750');
+  waConnected = false;
+  updateWAStatus('scanning', 'Scan the QR code in the new tab…');
+  // Start checking if tab is still open (proxy for connected)
+  if(waWebCheckInterval) clearInterval(waWebCheckInterval);
+  waWebCheckInterval = setInterval(checkWAConnection, 3000);
+  toast('📱 WhatsApp Web opened — scan the QR code then come back here');
+}
+
+function checkWAConnection(){
+  if(waWebTab && !waWebTab.closed){
+    waConnected = true;
+    updateWAStatus('connected', 'WhatsApp Web connected ✓');
+    if(waWebCheckInterval){ clearInterval(waWebCheckInterval); waWebCheckInterval = null; }
+  } else if(waConnected) {
+    // Tab was closed
+    waConnected = false;
+    updateWAStatus('disconnected', 'WhatsApp Web disconnected — click to reconnect');
+  } else {
+    updateWAStatus('disconnected', 'WhatsApp Web — not connected');
+  }
+}
+
+function updateWAStatus(state, text){
+  var dot  = document.getElementById('waStatusDot');
+  var txt  = document.getElementById('waStatusText');
+  if(dot){
+    dot.className = 'wa-status-dot' + (state==='connected' ? ' connected' : '');
+    dot.style.animation = state==='scanning' ? 'blink 1s infinite' : 'none';
+  }
+  if(txt) txt.textContent = text;
+}
+
+// Override waSend to use WhatsApp Web when connected, wa.me when not
+var _origWaSend = waSend;
+waSend = function(idx, encodedPhone){
+  var msg = waMessages[idx];
+  if(!msg){ toast('Generate a message first.', true); return; }
+
+  var phone = '';
+  try{ phone = decodeURIComponent(encodedPhone||'').replace(/[^0-9+]/g,''); }catch(e){ phone=''; }
+
+  var encoded = encodeURIComponent(msg);
+  var url;
+
+  if(waConnected && waWebTab && !waWebTab.closed){
+    // Send via WhatsApp Web (desktop)
+    url = phone
+      ? 'https://web.whatsapp.com/send?phone=' + phone.replace('+','') + '&text=' + encoded
+      : 'https://web.whatsapp.com/send?text=' + encoded;
+    waWebTab.location.href = url;
+    waWebTab.focus();
+    toast('✓ Message sent to WhatsApp Web — confirm send in the tab');
+  } else {
+    // Fallback to wa.me (mobile/any)
+    url = phone
+      ? 'https://wa.me/' + phone.replace('+','') + '?text=' + encoded
+      : 'https://wa.me/?text=' + encoded;
+    window.open(url, '_blank');
+  }
+
+  // Track sent
+  var c = D.contacts[idx];
+  var logEntry = {
+    idx:    idx,
+    name:   c ? c.name  : 'Unknown',
+    phone:  phone,
+    msg:    msg,
+    time:   new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'}),
+    via:    waConnected ? 'WhatsApp Web' : 'wa.me'
+  };
+
+  if(waSentToday.indexOf(idx) === -1) waSentToday.push(idx);
+  waSentLog.unshift(logEntry);
+
+  // Save to localStorage
+  localStorage.setItem('waSent_'+new Date().toDateString(),    JSON.stringify(waSentToday));
+  localStorage.setItem('waSentLog_'+new Date().toDateString(), JSON.stringify(waSentLog));
+
+  // Update counters
+  document.getElementById('waSent').textContent = waSentToday.length;
+  waGenCount = Math.max(waGenCount, Object.keys(waMessages).length);
+  document.getElementById('waGenerated').textContent = waGenCount;
+
+  // Update sent log display
+  renderWASentLog();
+
+  // Update contact's last contacted days to 0
+  if(D.contacts[idx]) D.contacts[idx].days = 0;
+  ac.followups++;
+  renderAll();
+};
+
+function renderWASentLog(){
+  var logEl  = document.getElementById('waSentLog');
+  var cntEl  = document.getElementById('waSentLogCount');
+  var itemEl = document.getElementById('waSentLogItems');
+  if(!logEl || !itemEl) return;
+
+  if(waSentLog.length === 0){ logEl.style.display='none'; return; }
+  logEl.style.display = 'block';
+  if(cntEl) cntEl.textContent = waSentLog.length;
+
+  itemEl.innerHTML = waSentLog.slice(0,10).map(function(entry){
+    var shortMsg = entry.msg.length > 80 ? entry.msg.substring(0,80)+'…' : entry.msg;
+    return '<div class="wa-log-item">'
+      + '<div style="flex:1;">'
+        + '<div style="display:flex;align-items:center;gap:8px;">'
+          + '<div class="wa-log-name">'+entry.name+'</div>'
+          + (entry.phone ? '<span style="font-size:9px;color:var(--t3);">'+entry.phone+'</span>' : '')
+          + '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(37,211,102,.1);color:#25D366;font-weight:700;">'+entry.via+'</span>'
+        + '</div>'
+        + '<div class="wa-log-msg">'+shortMsg+'</div>'
+      + '</div>'
+      + '<div class="wa-log-time">'+entry.time+'</div>'
+    + '</div>';
+  }).join('');
+}
+
+// Re-render sent log when WhatsApp tab loads
+window.addEventListener('load', function(){
+  renderWASentLog();
+  // Check if WhatsApp Web is already open in a tab
+  updateWAStatus('disconnected', 'WhatsApp Web — click to connect');
+});
+
+
+// ════════════════════════════════════════
+//  COLD CALL LIST ENGINE
+// ════════════════════════════════════════
+var coldList     = JSON.parse(localStorage.getItem('coldCallList')||'[]');
+var coldMessages = {}; // idx -> generated message
+var waModeActive = 'contacts';
+
+function waMode(mode, btn){
+  waModeActive = mode;
+  document.querySelectorAll('.wa-mode-tab').forEach(function(t){ t.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
+  var cont = document.getElementById('waModeContacts');
+  var cold = document.getElementById('waModeColdd');
+  if(cont) cont.style.display = mode === 'contacts' ? 'block' : 'none';
+  if(cold) cold.style.display = mode === 'cold'     ? 'block' : 'none';
+  if(mode === 'cold') renderColdList();
+}
+
+// ── Parse bulk paste ──
+function parseColdList(){
+  var raw  = document.getElementById('coldPasteBox').value.trim();
+  if(!raw){ toast('Paste some contacts first.', true); return; }
+  var defType = document.getElementById('coldDefaultType').value;
+  var lines = raw.split('\n').filter(function(l){ return l.trim().length > 0; });
+  var added = 0;
+  lines.forEach(function(line){
+    line = line.trim();
+    if(!line) return;
+    // Split by comma, pipe, or tab
+    var parts = line.split(/[,|\t]/).map(function(p){ return p.trim(); });
+    var name  = parts[0] || '';
+    if(!name) return;
+    // Find phone in parts (starts with + or 05 or 00)
+    var phone = '';
+    var notes = '';
+    var type  = defType;
+    parts.slice(1).forEach(function(p){
+      if(/^[+0]/.test(p) && p.replace(/[^0-9]/g,'').length >= 7){
+        phone = p;
+      } else if(['buyer','seller','investor','landlord','tenant','cold lead'].includes(p.toLowerCase())){
+        type = p;
+      } else if(p.length > 0){
+        notes = notes ? notes + ', ' + p : p;
+      }
+    });
+    // Check not already in list
+    var exists = coldList.some(function(c){ return c.name.toLowerCase() === name.toLowerCase(); });
+    if(!exists){
+      coldList.push({ name:name, phone:phone, notes:notes, type:type, status:'pending', addedAt: new Date().toISOString() });
+      added++;
+    }
+  });
+  saveColdList();
+  renderColdList();
+  document.getElementById('coldPasteBox').value = '';
+  toast('✓ Added ' + added + ' contacts to cold list' + (lines.length - added > 0 ? ' (' + (lines.length-added) + ' duplicates skipped)' : ''));
+}
+
+function addSingleCold(){
+  var form = document.getElementById('coldSingleForm');
+  if(form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addColdItem(){
+  var name  = (document.getElementById('coldSingleName')  || {}).value || '';
+  var phone = (document.getElementById('coldSinglePhone') || {}).value || '';
+  var notes = (document.getElementById('coldSingleNotes') || {}).value || '';
+  if(!name.trim()){ toast('Name is required.', true); return; }
+  coldList.unshift({ name:name.trim(), phone:phone.trim(), notes:notes.trim(),
+    type: document.getElementById('coldDefaultType').value,
+    status:'pending', addedAt: new Date().toISOString() });
+  saveColdList();
+  renderColdList();
+  document.getElementById('coldSingleName').value  = '';
+  document.getElementById('coldSinglePhone').value = '';
+  document.getElementById('coldSingleNotes').value = '';
+  document.getElementById('coldSingleForm').style.display = 'none';
+  toast('✓ ' + name.trim() + ' added to cold list');
+}
+
+function saveColdList(){
+  localStorage.setItem('coldCallList', JSON.stringify(coldList));
+}
+
+function renderColdList(){
+  // Stats
+  var total     = coldList.length;
+  var called    = coldList.filter(function(c){ return c.status === 'called'; }).length;
+  var skipped   = coldList.filter(function(c){ return c.status === 'skipped'; }).length;
+  var remaining = total - called - skipped;
+  document.getElementById('coldTotal').textContent     = total;
+  document.getElementById('coldCalled').textContent    = called;
+  document.getElementById('coldRemaining').textContent = remaining;
+  document.getElementById('coldSkipped').textContent   = skipped;
+
+  var el = document.getElementById('coldListItems');
+  if(!el) return;
+  if(coldList.length === 0){
+    el.innerHTML = '<div style="padding:30px;text-align:center;color:var(--t3);font-size:12px;">Your cold list is empty. Paste contacts above to get started.</div>';
+    return;
+  }
+
+  el.innerHTML = coldList.map(function(c, i){
+    var msg     = coldMessages[i];
+    var isCalled  = c.status === 'called';
+    var isSkipped = c.status === 'skipped';
+    var statusTag = isCalled
+      ? '<span class="cold-tag" style="background:var(--em-bg);color:var(--em);">✓ Called</span>'
+      : isSkipped
+        ? '<span class="cold-tag" style="background:var(--cr-bg);color:var(--cr);">✗ Skip</span>'
+        : '<span class="cold-tag" style="background:var(--s3);color:var(--t3);">Pending</span>';
+
+    var checkCls = isCalled ? 'done' : isSkipped ? 'skipped' : '';
+
+    var msgBlock = msg
+      ? '<div class="cold-msg-box">' + msg + '</div>'
+      : '';
+
+    var actionBtns = '<div class="cold-actions">';
+    if(!isCalled){
+      if(c.phone){
+        actionBtns += '<button class="wa-send-btn" style="font-size:9px;padding:6px 11px;" data-cidx="'+i+'" data-cphone="'+encodeURIComponent(c.phone)+'" onclick="coldSend(this)">📱 WhatsApp</button>';
+      }
+      if(!msg){
+        actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldGenMsg(this)">⚡ Message</button>';
+      } else {
+        actionBtns += '<button class="wa-copy-btn" style="font-size:9px;padding:6px 10px;" data-cidx="'+i+'" onclick="coldCopy(this)">📋 Copy</button>';
+        actionBtns += '<button class="wa-regen-btn" data-cidx="'+i+'" onclick="coldGenMsg(this)" title="Regenerate">↻</button>';
+      }
+      actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldMarkBtn(this)" data-status="called" style="color:var(--em);">✓ Called</button>';
+      actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldMarkBtn(this)" data-status="skipped" style="color:var(--cr);">✗ Skip</button>';
+    } else {
+      actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldMarkBtn(this)" data-status="pending">↩ Undo</button>';
+      actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldAddToContacts(this)" style="color:var(--gold);">+ Add to CRM</button>';
+    }
+    actionBtns += '<button class="ab" data-cidx="'+i+'" onclick="coldRemove(this)" style="color:var(--t3);">✕</button>';
+    actionBtns += '</div>';
+
+    return '<div class="cold-item' + (isCalled||isSkipped?' called':'') + '" id="cold-'+i+'">'
+      + '<div class="cold-check '+checkCls+'" data-cidx="'+i+'" onclick="coldCheckClick(this)">'
+        + (isCalled?'✓':isSkipped?'✗':'')
+      + '</div>'
+      + '<div class="cold-info">'
+        + '<div class="cold-name">'+c.name + statusTag + '</div>'
+        + (c.phone ? '<div class="cold-phone">📱 '+c.phone+'</div>' : '')
+        + (c.notes ? '<div class="cold-notes">'+c.notes+'</div>' : '')
+        + msgBlock
+        + actionBtns
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function coldCheckClick(el){
+  var i = parseInt(el.getAttribute('data-cidx'));
+  if(coldList[i].status === 'pending') coldList[i].status = 'called';
+  else if(coldList[i].status === 'called') coldList[i].status = 'skipped';
+  else coldList[i].status = 'pending';
+  saveColdList(); renderColdList();
+}
+
+function coldMark(btn, status){
+  var i = parseInt(btn.getAttribute('data-cidx'));
+  if(coldList[i]) coldList[i].status = status;
+  saveColdList(); renderColdList();
+}
+
+function coldRemove(btn){
+  var i = parseInt(btn.getAttribute('data-cidx'));
+  coldList.splice(i, 1);
+  delete coldMessages[i];
+  saveColdList(); renderColdList();
+}
+
+function coldAddToContacts(btn){
+  var i = parseInt(btn.getAttribute('data-cidx'));
+  var c = coldList[i];
+  if(!c) return;
+  D.contacts.unshift({ name:c.name, phone:c.phone||'', type:c.type||'Lead', stage:'Lead', days:0, value:0, notes:c.notes||'' });
+  coldList[i].status = 'called';
+  saveColdList(); renderColdList(); renderAll();
+  toast('✓ '+c.name+' added to your CRM contacts');
+}
+
+function coldSend(btn){
+  var i     = parseInt(btn.getAttribute('data-cidx'));
+  var phone = '';
+  try{ phone = decodeURIComponent(btn.getAttribute('data-cphone')||'').replace(/[^0-9+]/g,''); }catch(e){}
+  var msg   = coldMessages[i] || '';
+  var encoded = encodeURIComponent(msg);
+  var url;
+  if(waConnected && waWebTab && !waWebTab.closed){
+    url = phone
+      ? 'https://web.whatsapp.com/send?phone='+phone.replace('+','')+'&text='+encoded
+      : 'https://web.whatsapp.com/send?text='+encoded;
+    waWebTab.location.href = url; waWebTab.focus();
+  } else {
+    url = phone
+      ? 'https://wa.me/'+phone.replace('+','')+'?text='+encoded
+      : 'https://wa.me/?text='+encoded;
+    window.open(url, '_blank');
+  }
+  coldList[i].status = 'called';
+  saveColdList(); renderColdList();
+  // Add to sent log
+  var logEntry = { idx:'cold-'+i, name:coldList[i]?coldList[i].name:'Unknown', phone:phone,
+    msg:msg, time:new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'}), via:'Cold List' };
+  waSentLog.unshift(logEntry);
+  localStorage.setItem('waSentLog_'+new Date().toDateString(), JSON.stringify(waSentLog));
+  renderWASentLog();
+}
+
+function coldCopy(btn){
+  var i = parseInt(btn.getAttribute('data-cidx'));
+  var msg = coldMessages[i] || '';
+  if(!msg){ toast('No message to copy.', true); return; }
+  if(navigator.clipboard) navigator.clipboard.writeText(msg).then(function(){ toast('✓ Copied to clipboard'); });
+}
+
+async function coldGenMsg(btn){
+  var i = parseInt(btn.getAttribute('data-cidx'));
+  var c = coldList[i];
+  if(!c || !checkApiKey()) return;
+  var tone = document.getElementById('coldToneSelect').value;
+  btn.textContent = '…';
+
+  var tones = {
+    cold_intro:   'Professional cold introduction from a Dubai real estate broker',
+    cold_value:   'Lead with a valuable Dubai market insight, then introduce yourself',
+    cold_urgent:  'Reference Dubai market timing and create genuine urgency',
+    cold_arabic:  'Start with Marhaba or As-salamu alaykum, then professional English',
+    cold_referral:'Sound like a warm referral — friendly, not salesy',
+  };
+
+  var prompt = 'Write a cold WhatsApp message for a Dubai real estate broker reaching out to a new prospect for the first time.\n\n'
+    + 'PROSPECT: ' + c.name + '\n'
+    + 'Type: ' + (c.type||'Cold Lead') + '\n'
+    + (c.notes ? 'Notes: ' + c.notes + '\n' : '')
+    + (c.phone ? 'Has phone: yes\n' : '')
+    + '\nTONE: ' + tones[tone] + '\n'
+    + '\nRULES:\n'
+    + '- Max 3 sentences — must be short for WhatsApp\n'
+    + '- This is a FIRST contact — do not pretend to know them\n'
+    + '- Sound human and genuine, not like a template\n'
+    + '- Include a soft question at the end to start conversation\n'
+    + '- Dubai real estate context — reference market, opportunity, or area\n'
+    + '- Use their first name\n'
+    + '\nReturn ONLY the message — no labels, no quotes.';
+
+  try{
+    var res = await fetch('https://workerjs.karkarren02.workers.dev', {
+      method:'POST', headers: getApiHeaders(),
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:180,
+        messages:[{role:'user', content:prompt}] })
+    });
+    var data = await res.json();
+    if(data.error) throw new Error(data.error.message);
+    var text = data.content && data.content.length > 0
+      ? data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('').trim()
+      : 'Could not generate.';
+    coldMessages[i] = text;
+    renderColdList();
+  } catch(e){
+    toast('Error: ' + e.message, true);
+    btn.textContent = '⚡ Message';
+  }
+}
+
+async function genAllColdMessages(){
+  if(!checkApiKey()) return;
+  var pending = coldList.filter(function(c,i){ return c.status !== 'called' && !coldMessages[i]; });
+  if(pending.length === 0){ toast('All messages already generated.'); return; }
+  toast('⚡ Generating ' + pending.length + ' cold messages…');
+  for(var i = 0; i < coldList.length; i++){
+    if(coldList[i].status !== 'called' && !coldMessages[i]){
+      var fakeBtn = { getAttribute: function(){ return i; }, textContent:'' };
+      await coldGenMsg(fakeBtn);
+      await new Promise(function(r){ setTimeout(r, 250); });
+    }
+  }
+  toast('✓ All cold messages ready');
+}
+
+function clearCalledItems(){
+  if(!confirm('Remove all called/skipped contacts from the list?')) return;
+  coldList = coldList.filter(function(c){ return c.status === 'pending'; });
+  coldMessages = {};
+  saveColdList(); renderColdList();
+  toast('✓ Called contacts cleared');
+}
+
+function clearColdList(){
+  if(!confirm('Clear the entire cold call list?')) return;
+  coldList = []; coldMessages = {};
+  saveColdList(); renderColdList();
+}
+
+
+function coldMarkBtn(btn){ coldMark(btn, btn.getAttribute('data-status')); }
 
 </script>
 </body>
