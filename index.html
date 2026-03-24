@@ -1271,6 +1271,66 @@ tr:hover .del-btn{opacity:1;}
   .cold-actions{flex-direction:column;}
 }
 
+
+/* ══ MOB MORE SHEET ══ */
+.mob-more-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px;background:var(--s2);border:1px solid var(--border);border-radius:11px;cursor:pointer;font-family:var(--sans);font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--t2);transition:all .15s;}
+.mob-more-btn:hover,.mob-more-btn:active{border-color:var(--gold-b);color:var(--gold);background:var(--gold-bg);}
+
+/* ══ SEARCH BAR ══ */
+.global-search{
+  display:flex;align-items:center;gap:10px;
+  background:var(--s2);border:1px solid var(--border);border-radius:11px;
+  padding:10px 16px;margin-bottom:14px;
+  transition:border-color .15s;
+}
+.global-search:focus-within{border-color:var(--gold-b);}
+.gs-icon{font-size:16px;color:var(--t3);flex-shrink:0;}
+.gs-input{flex:1;background:none;border:none;outline:none;font-family:var(--sans);font-size:13px;color:var(--text);}
+.gs-input::placeholder{color:var(--t3);}
+.gs-count{font-family:var(--mono);font-size:10px;color:var(--t3);white-space:nowrap;}
+.gs-clear{background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0 4px;}
+.gs-results{background:var(--s1);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:14px;}
+.gs-section{border-bottom:1px solid var(--border);}
+.gs-section:last-child{border-bottom:none;}
+.gs-section-hd{padding:8px 14px;font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);background:var(--s2);}
+.gs-item{display:flex;align-items:center;gap:11px;padding:10px 14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;}
+.gs-item:last-child{border-bottom:none;}
+.gs-item:hover{background:rgba(255,255,255,.02);}
+.gs-item-icon{font-size:15px;flex-shrink:0;}
+.gs-item-main{flex:1;}
+.gs-item-name{font-size:12px;font-weight:600;}
+.gs-item-sub{font-size:10px;color:var(--t2);margin-top:1px;}
+.gs-item-val{font-family:var(--mono);font-size:10px;color:var(--gold);}
+
+/* ══ COMMISSION CALCULATOR ══ */
+.calc-hero{background:linear-gradient(135deg,rgba(201,168,76,.1),rgba(45,212,160,.05));border:1px solid var(--gold-b);border-radius:16px;padding:20px 24px;margin-bottom:16px;}
+.calc-hero h2{font-family:var(--serif);font-size:24px;font-weight:500;margin-bottom:4px;}
+.calc-hero p{font-size:11px;color:var(--t2);}
+.calc-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.calc-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.calc-card-hd{padding:12px 16px;border-bottom:1px solid var(--border);font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);background:var(--s2);}
+.calc-body{padding:16px;}
+.calc-field{margin-bottom:12px;}
+.calc-field label{display:block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);margin-bottom:5px;}
+.calc-input{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-family:var(--mono);font-size:14px;color:var(--text);outline:none;transition:border-color .15s;}
+.calc-input:focus{border-color:var(--gold-b);}
+.calc-slider{width:100%;accent-color:var(--gold);margin-top:5px;}
+.calc-slider-val{font-family:var(--mono);font-size:12px;color:var(--gold);text-align:right;margin-top:2px;}
+.calc-result{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:14px;}
+.calc-result-hd{padding:13px 18px;background:linear-gradient(135deg,rgba(201,168,76,.12),rgba(201,168,76,.04));border-bottom:1px solid var(--gold-b);font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gold);}
+.calc-breakdown{padding:14px 18px;}
+.calc-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.calc-row:last-child{border-bottom:none;}
+.calc-row-label{color:var(--t2);}
+.calc-row-val{font-family:var(--mono);font-weight:600;}
+.calc-total{background:var(--gold-bg);border:1px solid var(--gold-b);border-radius:10px;padding:14px 18px;margin-top:10px;display:flex;align-items:center;justify-content:space-between;}
+.calc-total-label{font-size:11px;font-weight:700;color:var(--gold);}
+.calc-total-val{font-family:var(--serif);font-size:28px;color:var(--gold);}
+.calc-history{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.calc-hist-item{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;}
+.calc-hist-item:last-child{border-bottom:none;}
+@media(max-width:680px){.calc-grid{grid-template-columns:1fr;}}
+
 </style>
 </head>
 <body>
@@ -1299,6 +1359,7 @@ tr:hover .del-btn{opacity:1;}
     <button class="tab" onclick="nav('whatsapp',this)">💬 WhatsApp</button>
     <button class="tab" onclick="nav('briefing',this)">☀ Briefing</button>
     <button class="tab" onclick="nav('coach',this)">🔥 Coach</button>
+    <button class="tab" onclick="nav('calculator',this)">🧮 Calculator</button>
     <button class="tab" onclick="nav('connect',this)">⚙ Connect</button>
   </div>
   <div class="tr">
@@ -1364,6 +1425,16 @@ tr:hover .del-btn{opacity:1;}
 
 <!-- OVERVIEW -->
 <div id="page-overview" class="page active">
+
+<!-- GLOBAL SEARCH -->
+<div class="global-search" id="globalSearchBar">
+  <span class="gs-icon">🔍</span>
+  <input class="gs-input" id="gsInput" placeholder="Search contacts, deals, listings…" oninput="globalSearch(this.value)" onkeydown="if(event.key==='Escape'){this.value='';clearSearch();}"/>
+  <span class="gs-count" id="gsCount"></span>
+  <button class="gs-clear" onclick="document.getElementById('gsInput').value='';clearSearch();" title="Clear">✕</button>
+</div>
+<div id="gsResults" style="display:none;"></div>
+
 <div class="lbar">
   <div class="lg"><label>Contact</label><input id="in" placeholder="Name"/></div>
   <div class="lg"><label>Type</label><select id="it"><option>Buyer</option><option>Seller</option><option>Investor</option><option>Landlord</option><option>Tenant</option></select></div>
@@ -2375,6 +2446,95 @@ tr:hover .del-btn{opacity:1;}
 
 </div>
 
+
+<!-- ════════════ COMMISSION CALCULATOR ════════════ -->
+<div id="page-calculator" class="page">
+
+  <div class="calc-hero">
+    <h2>🧮 Commission Calculator</h2>
+    <p>Calculate your exact net earnings per deal — including DLD fees, agency split, and VAT. Saved to history automatically.</p>
+  </div>
+
+  <div class="calc-grid">
+    <!-- INPUT CARD -->
+    <div class="calc-card">
+      <div class="calc-card-hd">Deal Details</div>
+      <div class="calc-body">
+        <div class="calc-field">
+          <label>Property Value (AED)</label>
+          <input class="calc-input" id="calcPropVal" type="number" placeholder="3500000" oninput="calcUpdate()"/>
+        </div>
+        <div class="calc-field">
+          <label>Commission Rate: <span id="calcCommLabel" style="color:var(--gold);">2.0%</span></label>
+          <input class="calc-slider" type="range" id="calcCommRate" min="0.5" max="5" step="0.25" value="2" oninput="document.getElementById('calcCommLabel').textContent=parseFloat(this.value).toFixed(2)+'%';calcUpdate()"/>
+        </div>
+        <div class="calc-field">
+          <label>Agency Split (you keep): <span id="calcSplitLabel" style="color:var(--gold);">70%</span></label>
+          <input class="calc-slider" type="range" id="calcAgencySplit" min="30" max="100" step="5" value="70" oninput="document.getElementById('calcSplitLabel').textContent=this.value+'%';calcUpdate()"/>
+        </div>
+        <div class="calc-field">
+          <label>Deal Type</label>
+          <select class="calc-input" id="calcDealType" onchange="calcUpdate()" style="font-family:var(--sans);font-size:12px;">
+            <option value="sale">Sale</option>
+            <option value="rental_annual">Rental (Annual)</option>
+            <option value="rental_monthly">Rental (Monthly × 12)</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label>Deal Name (optional)</label>
+          <input class="calc-input" id="calcDealName" type="text" placeholder="e.g. Al Mansoori – Palm 2BR" style="font-family:var(--sans);font-size:12px;"/>
+        </div>
+        <button class="btn-g" onclick="saveCalcToHistory()" style="width:100%;padding:11px;margin-top:4px;font-size:11px;">💾 Save to History</button>
+      </div>
+    </div>
+
+    <!-- BREAKDOWN CARD -->
+    <div>
+      <!-- RESULT -->
+      <div class="calc-result">
+        <div class="calc-result-hd">Breakdown</div>
+        <div class="calc-breakdown">
+          <div class="calc-row"><span class="calc-row-label">Property Value</span><span class="calc-row-val" id="crPropVal" style="color:var(--text);">AED 0</span></div>
+          <div class="calc-row"><span class="calc-row-label">Gross Commission</span><span class="calc-row-val" id="crGross" style="color:var(--gold);">AED 0</span></div>
+          <div class="calc-row"><span class="calc-row-label">DLD Registration Fee (4%)</span><span class="calc-row-val" id="crDLD" style="color:var(--cr);">AED 0</span></div>
+          <div class="calc-row"><span class="calc-row-label">Agency takes (<span id="crAgencyPct">30</span>%)</span><span class="calc-row-val" id="crAgency" style="color:var(--cr);">AED 0</span></div>
+          <div class="calc-row"><span class="calc-row-label">VAT on commission (5%)</span><span class="calc-row-val" id="crVAT" style="color:var(--cr);">AED 0</span></div>
+        </div>
+        <div class="calc-total">
+          <div>
+            <div class="calc-total-label">Your Net Commission</div>
+            <div style="font-size:10px;color:var(--t2);margin-top:2px;">After agency split + VAT</div>
+          </div>
+          <div class="calc-total-val" id="crNet">AED 0</div>
+        </div>
+      </div>
+
+      <!-- QUICK PRESETS -->
+      <div class="calc-card">
+        <div class="calc-card-hd">Quick Presets</div>
+        <div style="padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+          <button class="ab" onclick="calcPreset(1500000,2,70)" style="text-align:left;padding:8px 10px;">JVC Studio<br><span style="font-size:9px;color:var(--t3);">AED 1.5M · 2%</span></button>
+          <button class="ab" onclick="calcPreset(2500000,2,70)" style="text-align:left;padding:8px 10px;">Marina 1BR<br><span style="font-size:9px;color:var(--t3);">AED 2.5M · 2%</span></button>
+          <button class="ab" onclick="calcPreset(3500000,2,70)" style="text-align:left;padding:8px 10px;">Springs Villa<br><span style="font-size:9px;color:var(--t3);">AED 3.5M · 2%</span></button>
+          <button class="ab" onclick="calcPreset(8500000,2,70)" style="text-align:left;padding:8px 10px;">Palm Apt<br><span style="font-size:9px;color:var(--t3);">AED 8.5M · 2%</span></button>
+          <button class="ab" onclick="calcPreset(15000000,1.5,70)" style="text-align:left;padding:8px 10px;">Emirates Hills<br><span style="font-size:9px;color:var(--t3);">AED 15M · 1.5%</span></button>
+          <button class="ab" onclick="calcPreset(25000000,1,70)" style="text-align:left;padding:8px 10px;">Mega Deal<br><span style="font-size:9px;color:var(--t3);">AED 25M · 1%</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="calc-history" id="calcHistory" style="display:none;">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--border);background:var(--s2);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--t3);">Saved Calculations</span>
+      <button class="ab" onclick="clearCalcHistory()">Clear</button>
+    </div>
+    <div id="calcHistoryItems"></div>
+  </div>
+
+</div>
+
 </div><!-- /wrap -->
 <!-- MODAL -->
 <div class="mbg" id="am"><div class="modal"><div class="mhd"><h2 id="at">Analysis</h2><button class="mx" onclick="closeAI()">✕</button></div><div class="mbody" id="ab2"><div class="ail"><div class="sp"></div>Analysing…</div></div></div></div>
@@ -2788,8 +2948,9 @@ function logAct(){
 function nav(n,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+n).classList.add('active');
-  btn.classList.add('active');renderAll();
+  var pg=document.getElementById('page-'+n);if(pg)pg.classList.add('active');
+  if(btn)btn.classList.add('active');
+  renderAll();
 }
 
 // AI
@@ -2913,7 +3074,18 @@ function rPreListing(){
 }
 
 
-function renderAll(){rOverview();rPipeline();rListings();rDiscipline();rForecast();rPreListing();}
+function renderAll(){
+  var pg=document.querySelector('.page.active');
+  var id=pg?pg.id:'page-overview';
+  if(id==='page-overview')   rOverview();
+  else if(id==='page-pipeline')   rPipeline();
+  else if(id==='page-listings')   {rListings();rPreListing();}
+  else if(id==='page-discipline') rDiscipline();
+  else if(id==='page-forecast')   rForecast();
+  try{var sc=score(),ci=207,off=ci-(sc/100)*ci,r=document.getElementById('mr');
+    if(r){r.style.strokeDashoffset=off;r.style.stroke=sc>=85?'var(--em)':sc>=70?'var(--gold)':sc>=50?'var(--am)':'var(--cr)';}
+    var sn=document.getElementById('sn');if(sn)sn.textContent=sc;}catch(e){}
+}
 
 setSS('idle','Demo data active');updateDB();
 document.getElementById('sd').textContent=new Date().toLocaleDateString('en-AE',{weekday:'long',year:'numeric',month:'long',day:'numeric'})+' · Dubai';
@@ -5451,6 +5623,297 @@ function clearColdList(){
 
 function coldMarkBtn(btn){ coldMark(btn, btn.getAttribute('data-status')); }
 
+
+// ════════════════════════════════════════
+//  MOBILE MORE SHEET
+// ════════════════════════════════════════
+function showMobMore(){
+  document.getElementById('mobMoreSheet').style.display='block';
+  document.getElementById('mobMoreOverlay').style.display='block';
+  document.body.style.overflow='hidden';
+}
+function hideMobMore(){
+  document.getElementById('mobMoreSheet').style.display='none';
+  document.getElementById('mobMoreOverlay').style.display='none';
+  document.body.style.overflow='';
+}
+function mobMoreNav(name){
+  hideMobMore();
+  document.querySelectorAll('.mob-nav-item').forEach(function(i){i.classList.remove('active');});
+  var origMob = mobNav;
+  // Find tab and activate
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  var pg=document.getElementById('page-'+name);if(pg)pg.classList.add('active');
+  renderAll();
+  if(name==='market'){initMarket();}
+  if(name==='coach'){_coachInitDone=false;initCoach();}
+  if(name==='whatsapp'){initWhatsApp();renderWAList();}
+  if(name==='briefing'){_briefingInitDone=false;initBriefing();}
+  if(name==='calculator'){calcUpdate();renderCalcHistory();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ════════════════════════════════════════
+//  GLOBAL SEARCH
+// ════════════════════════════════════════
+var _searchTimeout = null;
+function globalSearch(q){
+  clearTimeout(_searchTimeout);
+  var res = document.getElementById('gsResults');
+  var cnt = document.getElementById('gsCount');
+  if(!q || q.trim().length < 2){
+    res.style.display='none';
+    if(cnt) cnt.textContent='';
+    return;
+  }
+  _searchTimeout = setTimeout(function(){ doSearch(q.trim()); }, 200);
+}
+
+function doSearch(q){
+  var ql = q.toLowerCase();
+  var results = {contacts:[], pipeline:[], listings:[]};
+
+  D.contacts.forEach(function(c,i){
+    if((c.name||'').toLowerCase().includes(ql) ||
+       (c.type||'').toLowerCase().includes(ql) ||
+       (c.stage||'').toLowerCase().includes(ql) ||
+       (c.phone||'').includes(ql) ||
+       (c.notes||'').toLowerCase().includes(ql)){
+      results.contacts.push({c:c,i:i});
+    }
+  });
+  D.pipeline.forEach(function(d,i){
+    if((d.name||'').toLowerCase().includes(ql) ||
+       (d.stage||'').toLowerCase().includes(ql)){
+      results.pipeline.push({d:d,i:i});
+    }
+  });
+  D.listings.forEach(function(l,i){
+    if((l.name||'').toLowerCase().includes(ql) ||
+       (l.address||'').toLowerCase().includes(ql) ||
+       (l.status||'').toLowerCase().includes(ql) ||
+       (l.type||'').toLowerCase().includes(ql)){
+      results.listings.push({l:l,i:i});
+    }
+  });
+
+  var total = results.contacts.length + results.pipeline.length + results.listings.length;
+  var cnt = document.getElementById('gsCount');
+  if(cnt) cnt.textContent = total + ' result' + (total===1?'':'s');
+
+  var res = document.getElementById('gsResults');
+  if(total === 0){
+    res.innerHTML = '<div style="padding:16px;text-align:center;color:var(--t3);font-size:12px;">No results for "'+q+'"</div>';
+    res.style.display='block'; return;
+  }
+
+  var html2 = '<div class="gs-results">';
+
+  if(results.contacts.length > 0){
+    html2 += '<div class="gs-section"><div class="gs-section-hd">👥 Contacts ('+results.contacts.length+')</div>';
+    results.contacts.slice(0,5).forEach(function(r){
+      var f=flag(r.c);
+      html2 += '<div class="gs-item" onclick="clearSearch();document.querySelectorAll(\'.tab\')[0].click()">'
+        +'<span class="gs-item-icon">👤</span>'
+        +'<div class="gs-item-main">'
+          +'<div class="gs-item-name">'+r.c.name+'<span class="chip '+f.cl+'" style="margin-left:6px;font-size:8px;">'+f.lb+'</span></div>'
+          +'<div class="gs-item-sub">'+r.c.type+' · '+r.c.stage+' · '+r.c.days+'d ago</div>'
+        +'</div>'
+        +'<div class="gs-item-val">'+fmt(r.c.value)+'</div>'
+      +'</div>';
+    });
+    html2 += '</div>';
+  }
+
+  if(results.pipeline.length > 0){
+    html2 += '<div class="gs-section"><div class="gs-section-hd">💰 Pipeline ('+results.pipeline.length+')</div>';
+    results.pipeline.slice(0,4).forEach(function(r){
+      html2 += '<div class="gs-item" onclick="clearSearch();document.querySelectorAll(\'.tab\')[1].click()">'
+        +'<span class="gs-item-icon">💰</span>'
+        +'<div class="gs-item-main">'
+          +'<div class="gs-item-name">'+r.d.name+'</div>'
+          +'<div class="gs-item-sub">'+r.d.stage+' · '+r.d.days+' days open</div>'
+        +'</div>'
+        +'<div class="gs-item-val">'+fmt(r.d.value)+'</div>'
+      +'</div>';
+    });
+    html2 += '</div>';
+  }
+
+  if(results.listings.length > 0){
+    html2 += '<div class="gs-section"><div class="gs-section-hd">🏠 Listings ('+results.listings.length+')</div>';
+    results.listings.slice(0,4).forEach(function(r){
+      html2 += '<div class="gs-item" onclick="clearSearch();document.querySelectorAll(\'.tab\')[2].click()">'
+        +'<span class="gs-item-icon">🏠</span>'
+        +'<div class="gs-item-main">'
+          +'<div class="gs-item-name">'+r.l.name+'</div>'
+          +'<div class="gs-item-sub">'+r.l.type+' · '+r.l.status+' · '+r.l.days+'d on market</div>'
+        +'</div>'
+        +'<div class="gs-item-val">'+fmt(r.l.price)+'</div>'
+      +'</div>';
+    });
+    html2 += '</div>';
+  }
+
+  html2 += '</div>';
+  res.innerHTML = html2;
+  res.style.display = 'block';
+}
+
+function clearSearch(){
+  document.getElementById('gsResults').style.display='none';
+  var cnt=document.getElementById('gsCount');if(cnt)cnt.textContent='';
+}
+
+// Keyboard shortcut: / to focus search
+document.addEventListener('keydown',function(e){
+  if(e.key==='/' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+    e.preventDefault();
+    var gs=document.getElementById('gsInput');
+    if(gs){gs.focus();}
+  }
+});
+
+// ════════════════════════════════════════
+//  COMMISSION CALCULATOR
+// ════════════════════════════════════════
+var calcHistoryData = JSON.parse(localStorage.getItem('calcHistory')||'[]');
+
+function calcUpdate(){
+  var propVal  = parseFloat(document.getElementById('calcPropVal').value)||0;
+  var commRate = parseFloat(document.getElementById('calcCommRate').value)||2;
+  var split    = parseFloat(document.getElementById('calcAgencySplit').value)||70;
+  var dealType = document.getElementById('calcDealType').value;
+
+  // Gross commission
+  var gross = propVal * (commRate/100);
+
+  // DLD fee (only on sales, not rentals)
+  var dld = dealType === 'sale' ? propVal * 0.04 : 0;
+
+  // Agency takes remainder
+  var agencyPct = 100 - split;
+  var agencyTakes = gross * (agencyPct/100);
+
+  // Broker gross after split
+  var brokerGross = gross * (split/100);
+
+  // VAT on broker's commission
+  var vat = brokerGross * 0.05;
+
+  // Net
+  var net = brokerGross - vat;
+
+  // Update display
+  function aed(n){ return 'AED '+Math.round(n).toLocaleString(); }
+  document.getElementById('crPropVal').textContent  = aed(propVal);
+  document.getElementById('crGross').textContent    = aed(gross);
+  document.getElementById('crDLD').textContent      = dealType==='sale'?aed(dld):'N/A (rental)';
+  document.getElementById('crAgency').textContent   = aed(agencyTakes);
+  document.getElementById('crAgencyPct').textContent= Math.round(agencyPct);
+  document.getElementById('crVAT').textContent      = aed(vat);
+  document.getElementById('crNet').textContent      = aed(net);
+}
+
+function calcPreset(val, comm, split){
+  document.getElementById('calcPropVal').value    = val;
+  document.getElementById('calcCommRate').value   = comm;
+  document.getElementById('calcAgencySplit').value= split;
+  document.getElementById('calcCommLabel').textContent  = comm.toFixed(2)+'%';
+  document.getElementById('calcSplitLabel').textContent = split+'%';
+  calcUpdate();
+}
+
+function saveCalcToHistory(){
+  var propVal  = parseFloat(document.getElementById('calcPropVal').value)||0;
+  if(!propVal){ toast('Enter a property value first.', true); return; }
+  var commRate = parseFloat(document.getElementById('calcCommRate').value)||2;
+  var split    = parseFloat(document.getElementById('calcAgencySplit').value)||70;
+  var name     = document.getElementById('calcDealName').value.trim() || 'Deal '+new Date().toLocaleDateString('en-AE');
+  var gross    = propVal*(commRate/100);
+  var net      = gross*(split/100)*0.95;
+  calcHistoryData.unshift({
+    name:name, propVal:propVal, commRate:commRate, split:split,
+    gross:Math.round(gross), net:Math.round(net),
+    date:new Date().toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'})
+  });
+  if(calcHistoryData.length > 20) calcHistoryData.pop();
+  localStorage.setItem('calcHistory', JSON.stringify(calcHistoryData));
+  renderCalcHistory();
+  toast('✓ '+name+' saved to history');
+}
+
+function renderCalcHistory(){
+  var el  = document.getElementById('calcHistoryItems');
+  var box = document.getElementById('calcHistory');
+  if(!el || !box) return;
+  if(calcHistoryData.length === 0){ box.style.display='none'; return; }
+  box.style.display = 'block';
+  el.innerHTML = calcHistoryData.map(function(h,i){
+    return '<div class="calc-hist-item">'
+      +'<div style="flex:1;">'
+        +'<div style="font-weight:600;font-size:12px;">'+h.name+'</div>'
+        +'<div style="font-size:10px;color:var(--t2);">AED '+h.propVal.toLocaleString()+' · '+h.commRate+'% · '+h.split+'% split</div>'
+      +'</div>'
+      +'<div style="text-align:right;">'
+        +'<div style="font-family:var(--mono);color:var(--gold);font-size:12px;">AED '+h.net.toLocaleString()+'</div>'
+        +'<div style="font-size:9px;color:var(--t3);">'+h.date+'</div>'
+      +'</div>'
+      +'<button class="ab" data-hidx="'+i+'" onclick="removeCalcHistory(this)" style="margin-left:10px;color:var(--t3);">✕</button>'
+    +'</div>';
+  }).join('');
+}
+
+function removeCalcHistory(btn){
+  var i = parseInt(btn.getAttribute('data-hidx'));
+  calcHistoryData.splice(i,1);
+  localStorage.setItem('calcHistory', JSON.stringify(calcHistoryData));
+  renderCalcHistory();
+}
+
+function clearCalcHistory(){
+  if(!confirm('Clear all saved calculations?')) return;
+  calcHistoryData=[];
+  localStorage.setItem('calcHistory','[]');
+  renderCalcHistory();
+}
+
+// Init calculator on load
+window.addEventListener('DOMContentLoaded', function(){
+  calcUpdate();
+  renderCalcHistory();
+});
+
+// Hook nav for calculator
+var _origNavCalc = nav;
+nav = function(name, btn){
+  _origNavCalc(name, btn);
+  if(name==='calculator'){ calcUpdate(); renderCalcHistory(); }
+};
+
 </script>
 </body>
-</html>
+</html<!-- MOBILE BOTTOM NAV -->
+<div class="mob-nav" id="mobNav">
+  <button class="mob-nav-item active" onclick="mobNav('overview',this)"><div class="mni">📊</div><span>Overview</span><div class="mni-dot"></div></button>
+  <button class="mob-nav-item" onclick="mobNav('pipeline',this)"><div class="mni">💰</div><span>Pipeline</span><div class="mni-dot"></div></button>
+  <button class="mob-nav-item" onclick="mobNav('listings',this)"><div class="mni">🏠</div><span>Listings</span><div class="mni-dot"></div></button>
+  <button class="mob-nav-item" onclick="mobNav('coach',this)"><div class="mni">🔥</div><span>Coach</span><div class="mni-dot"></div></button>
+  <button class="mob-nav-item" onclick="showMobMore()"><div class="mni">⋯</div><span>More</span><div class="mni-dot"></div></button>
+</div>
+<div id="mobMoreOverlay" onclick="hideMobMore()" style="display:none;position:fixed;inset:0;z-index:799;background:rgba(0,0,0,.5);backdrop-filter:blur(4px);"></div>
+<div id="mobMoreSheet" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:800;background:var(--s1);border-top:1px solid var(--gold-b);border-radius:20px 20px 0 0;padding:16px 14px 40px;">
+  <div style="width:40px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 16px;"></div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+    <button class="mob-more-btn" onclick="mobMoreNav('whatsapp')"><span style="font-size:22px;">💬</span><span>WhatsApp</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('briefing')"><span style="font-size:22px;">☀</span><span>Briefing</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('market')"><span style="font-size:22px;">🧠</span><span>Market</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('discipline')"><span style="font-size:22px;">📅</span><span>Habits</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('forecast')"><span style="font-size:22px;">📈</span><span>Forecast</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('contacts-add')"><span style="font-size:22px;">➕</span><span>Add Contact</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('calculator')"><span style="font-size:22px;">🧮</span><span>Calculator</span></button>
+    <button class="mob-more-btn" onclick="mobMoreNav('connect')"><span style="font-size:22px;">⚙</span><span>Settings</span></button>
+  </div>
+  <button onclick="hideMobMore()" style="width:100%;margin-top:12px;padding:13px;background:var(--s2);border:1px solid var(--border);border-radius:11px;font-family:var(--sans);font-size:12px;font-weight:700;color:var(--t2);cursor:pointer;">✕ Close</button>
+</div>
+>
