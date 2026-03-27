@@ -8267,8 +8267,9 @@ async function gsPost(body) {
     });
     var txt3 = await res3.text();
     if(txt3 && txt3.trim()[0]==='{') return JSON.parse(txt3.trim());
-    return {ok:true};
-  } catch(e3) {}
+    if(res3.ok) return {ok:true};
+    return {ok:false, error:'http_'+res3.status};
+  } catch(e3) { return {ok:false, error:String(e3)}; }
   return null;
 }
 
@@ -8303,27 +8304,63 @@ async function gsBulkWrite(sheet, rows, mode) {
   return await gsPost({ action: 'bulk_write', sheet: sheet, rows: rows, mode: mode || 'replace' });
 }
 
-// -- CAMPAIGN: SAVE ALL CONTACTS TO GOOGLE SHEET --
+// -- CAMPAIGN: SAVE ALL CONTACTS TO GOOGLE SHEET (chunked, direct-to-GS) --
 async function gsCampaignSaveToSheet(){
   var btn = document.getElementById('campGsBtn');
   var status = document.getElementById('campGsStatus');
   if(!campDB || !campDB.length){ toast('No contacts to save', true); return; }
-  if(btn){ btn.textContent = '⏳ Saving…'; btn.disabled = true; }
-  if(status){ status.style.display = 'block'; status.textContent = 'Syncing '+campDB.length+' contacts to Google Sheet…'; }
-  try {
-    var result = await gsBulkWrite('Campaigns', campDB, 'replace');
-    var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-    if(btn){ btn.textContent = '✓ Saved'; btn.style.color = 'var(--grn)'; }
-    if(status){ status.textContent = '✓ '+campDB.length+' contacts synced to Sheet · Last sync: '+ts; status.style.color = 'var(--grn)'; }
-    toast('✓ '+campDB.length+' contacts saved to Google Sheet');
-    setTimeout(function(){
-      if(btn){ btn.textContent = '☁ Save to Sheet'; btn.disabled = false; }
-    }, 3000);
-  } catch(e) {
-    if(btn){ btn.textContent = '☁ Save to Sheet'; btn.disabled = false; }
-    if(status){ status.textContent = '✗ Sync failed — check Google Sheet connection'; status.style.color = 'var(--red)'; }
-    toast('Sync failed — check connection settings', true);
+
+  var CHUNK = 150; // safe batch — stays well under payload limits
+  var total = campDB.length;
+  var batches = Math.ceil(total / CHUNK);
+  var GS_URL = GS.url || 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+
+  if(btn){ btn.textContent = '⏳ 0%'; btn.disabled = true; }
+  if(status){ status.style.display='block'; status.style.color='var(--muted)'; status.textContent='Connecting to Google Sheet…'; }
+
+  // Direct-to-AppScript helper (bypasses Worker — avoids 128KB Worker limit)
+  async function postChunk(body){
+    var res = await fetch(GS_URL, {
+      method:'POST', redirect:'follow',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(25000)
+    });
+    var txt = await res.text();
+    if(txt && txt.trim()[0]==='{'){
+      var parsed = JSON.parse(txt.trim());
+      if(parsed.error) throw new Error(parsed.error);
+      return parsed;
+    }
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    return {ok:true};
   }
+
+  try {
+    for(var i=0; i<batches; i++){
+      var chunk = campDB.slice(i*CHUNK, (i+1)*CHUNK);
+      var mode  = i===0 ? 'replace' : 'append';
+      var pct   = Math.round(((i+1)/batches)*100);
+
+      if(status) status.textContent = 'Writing batch '+(i+1)+'/'+batches+' · '+Math.min((i+1)*CHUNK,total)+'/'+total+' contacts…';
+      if(btn) btn.textContent = '⏳ '+pct+'%';
+
+      await postChunk({ action:'bulk_write', sheet:'Campaigns', rows:chunk, mode:mode });
+    }
+
+    var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    if(btn){ btn.textContent = '✓ Saved'; btn.style.color='var(--grn)'; }
+    if(status){ status.textContent='✓ '+total+' contacts synced to Sheet · '+ts; status.style.color='var(--grn)'; }
+    toast('✓ '+total+' contacts saved to Google Sheet');
+  } catch(err){
+    var msg = err&&err.message ? err.message : 'connection error';
+    if(status){ status.textContent='✗ Sync failed: '+msg; status.style.color='var(--red)'; }
+    toast('Sync failed: '+msg, true);
+    console.error('gsCampaignSaveToSheet error:', err);
+  }
+  setTimeout(function(){
+    if(btn){ btn.textContent='☁ Save to Sheet'; btn.disabled=false; btn.style.color=''; }
+  }, 4000);
 }
 
 // -- CAMPAIGN: DOWNLOAD DLD-COMPATIBLE TEMPLATE --
@@ -9814,13 +9851,11 @@ function gsWriteBatch(contacts){
 var _origCampConfirmGS = campConfirmImport;
 campConfirmImport = function(){
   _origCampConfirmGS();
-  // After import, auto-sync full Campaigns sheet
+  // After import, auto-sync using chunked save (same as manual Save to Sheet)
   setTimeout(function(){
     var statusEl = document.getElementById('campGsStatus');
-    if(statusEl){ statusEl.style.display='block'; statusEl.style.color='var(--muted)'; statusEl.textContent = '⏳ Auto-syncing imported contacts to Google Sheet…'; }
-    gsBulkWrite('Campaigns', campDB, 'replace').then(function(){
-      var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'});
-      if(statusEl){ statusEl.style.color='var(--grn)'; statusEl.textContent = '✓ '+campDB.length+' contacts synced to Sheet after import · '+ts; }
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.color='var(--muted)'; statusEl.textContent = '⏳ Auto-syncing to Google Sheet after import…'; }
+    gsCampaignSaveToSheet().then(function(){
     }).catch(function(){
       if(statusEl){ statusEl.style.color='var(--muted)'; statusEl.textContent = 'Sheet sync skipped (not connected)'; }
     });
