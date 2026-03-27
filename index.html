@@ -7173,24 +7173,35 @@ var campPreviewData = [];
 
 // -- COLUMN MAP for Springs-format + DLD export files --
 var COLUMN_MAP = {
-  name:        ['NAME','name','Full Name','OWNER NAME','OWNER','Contact Name','OWNER_NAME','Owner Name','REGISTRANT_NAME','Registrant'],
-  phone:       ['CLEANED NUMBERS','Phone 1 (Primary WA','Phone 1','PHONE','MOBILE','SECONDARY MOBILE','phone','mobile','Phone','Mobile','Contact','MOBILE_NO','MOBILE_NUMBER','PHONE_NO','TEL','TELEPHONE'],
+  // ── Name: DLD OWNER_NAME / FIRST_NAME ──────────────────────────
+  name:        ['OWNER_NAME','FIRST_NAME','First Name','NAME','name','Full Name','OWNER NAME','OWNER','Contact Name','Owner Name','REGISTRANT_NAME','Registrant'],
+  // ── Phone: DLD MOBILE_NO / MOBILE_NUMBER ───────────────────────
+  phone:       ['MOBILE_NO','MOBILE_NUMBER','CLEANED NUMBERS','Phone 1 (Primary WA','Phone 1','PHONE','MOBILE','SECONDARY MOBILE','phone','mobile','Phone','Mobile','Contact','PHONE_NO','TEL','TELEPHONE'],
   phone2:      ['Phone 2','PHONE 2','SECONDARY MOBILE','MOBILE 2','phone2','Alt Phone','Phone2','MOBILE_2','ALT_MOBILE'],
   phone3:      ['Phone 3','PHONE 3','MOBILE 3','phone3','Alt Phone 2','Phone3','MOBILE_3'],
   email:       ['EMAIL','email','Email','E-MAIL','EMAIL_ADDRESS','Email Address'],
   type:        ['Contact Type','TYPE','Type','Contact Type\n(Seller/Landlord/Buyer/Investor/Tenant/End-User)','CATEGORY','OWNER_TYPE'],
-  community:   ['MASTER PROJECT','Master Project','COMMUNITY','community','Community','Project','AREA','Preferred Communities','DEVELOPMENT','Development','COMMUNITY_NAME','MASTER_COMMUNITY','MASTER_PROJECT','PROJECT_NAME','BUILDING_NAME'],
+  // ── Community: DLD COMMUNITY_NAME / MASTER_PROJECT / BUILDING_NAME ─
+  community:   ['COMMUNITY_NAME','MASTER_PROJECT','BUILDING_NAME','MASTER PROJECT','Master Project','COMMUNITY','community','Community','Project','AREA','Preferred Communities','DEVELOPMENT','Development','MASTER_COMMUNITY','PROJECT_NAME'],
   subComm:     ['Sub-Community','SUB COMMUNITY','sub_community','Sub Community','SUB_COMMUNITY','Project Sub','PHASE','Phase','SUB_COMMUNITY_NAME'],
-  property:    ['ADDRESS','address','Full Address','Unit / Villa No.','Property Address','PROPERTY','VILLA NO','UNIT','UNIT NO','Street','STREET','Villa','UNIT_NO','VILLA_NO','PROPERTY_ADDRESS','FLAT_NO'],
-  bedrooms:    ['BEDROOMS','beds','Bedrooms','BED','bed_count','Preferred Beds','Bedrooms','Bedroom','NO_OF_BEDROOMS','BEDS','BEDROOM_COUNT'],
+  // ── Property / Unit: DLD UNIT_NO / VILLA_NO / FLAT_NO ──────────
+  property:    ['UNIT_NO','VILLA_NO','FLAT_NO','ADDRESS','address','Full Address','Unit / Villa No.','Property Address','PROPERTY','VILLA NO','UNIT','UNIT NO','Street','STREET','Villa','PROPERTY_ADDRESS'],
+  // ── Bedrooms: DLD BEDROOMS / ROOMS / NUMBER_OF_BEDROOMS ────────
+  bedrooms:    ['NUMBER_OF_BEDROOMS','NO_OF_BEDROOMS','BEDROOMS','ROOMS','beds','Bedrooms','BED','bed_count','Preferred Beds','Bedroom','BEDS','BEDROOM_COUNT'],
   bathrooms:   ['BATHROOMS','baths','Bathrooms','BATH','NO_OF_BATHROOMS'],
   propType:    ['Property Type','PROPERTY TYPE','prop_type','Type','PROPERTY_TYPE','PROPERTY_USAGE','USAGE_TYPE'],
-  fullAddress: ['location','LOCATION','Location','FULL ADDRESS','Full Address Property','FULL LOCATION','FULL_ADDRESS'],
-  plotNum:     ['Plot No.','plot_number','Plot No','PLOT NO','PLOT_NO','PLOT_NUMBER','LAND_NUMBER'],
-  dldNum:      ['DLD Title Deed No.','DLD','Title Deed','TITLE DEED','DLD No','TITLE_DEED_NO','DEED_NO','TRANSACTION_NUMBER','TRANS_NO'],
-  permitNum:   ['P-Number / Permit No.','P-Number','Permit No.','PERMIT','P_NUMBER','P-NO','PERMIT_NO','RERA_NO'],
-  area:        ['ACTUAL AREA','Area (sqft)','area','AREA OWNED','BUA','sqft','ACTUAL_AREA','AREA_SQFT','PLOT_AREA','BUILDING_AREA'],
-  askingPrice: ['Asking Price / Rent (AED)','Asking Price','ASKING PRICE','PRICE','Price','AED','TRANS_VALUE','TRANSACTION_VALUE','SALE_VALUE','PRICE_AED'],
+  // ── Full address: DLD LOCATION / FULL_ADDRESS ──────────────────
+  fullAddress: ['LOCATION','FULL_ADDRESS','FULL ADDRESS','location','Location','Full Address Property','FULL LOCATION'],
+  // ── Plot: DLD PLOT_NO / LAND_NUMBER ────────────────────────────
+  plotNum:     ['PLOT_NO','LAND_NUMBER','Plot No.','plot_number','Plot No','PLOT NO','PLOT_NUMBER'],
+  // ── Title deed: DLD TITLE_DEED_NO / DEED_NO / TRANS_NO ─────────
+  dldNum:      ['TITLE_DEED_NO','DEED_NO','TRANS_NO','DLD Title Deed No.','DLD','Title Deed','TITLE DEED','DLD No','TRANSACTION_NUMBER'],
+  // ── Permit: P-NUMBER / PERMIT NUMBER ───────────────────────────
+  permitNum:   ['P-NUMBER','PERMIT NUMBER','P-Number / Permit No.','P-Number','Permit No.','PERMIT','P_NUMBER','P-NO','PERMIT_NO','RERA_NO'],
+  // ── Area: DLD ACTUAL_AREA / AREA_SQFT ──────────────────────────
+  area:        ['ACTUAL_AREA','AREA_SQFT','ACTUAL AREA','Area (sqft)','area','AREA OWNED','BUA','sqft','PLOT_AREA','BUILDING_AREA'],
+  // ── Price: DLD TRANS_VALUE / SALE_VALUE ────────────────────────
+  askingPrice: ['TRANS_VALUE','SALE_VALUE','Asking Price / Rent (AED)','Asking Price','ASKING PRICE','PRICE','Price','AED','TRANSACTION_VALUE','PRICE_AED'],
   marketVal:   ['Market Value (AED)','Market Value','MARKET VALUE','MARKET_VALUE','VALUATION'],
   budgetMin:   ['Budget Min (AED)','Budget Min','BUDGET MIN','budget_min'],
   budgetMax:   ['Budget Max (AED)','Budget Max','BUDGET MAX','budget_max','Monthly Budget (AED)'],
@@ -7198,14 +7209,16 @@ var COLUMN_MAP = {
   goldenVisa:  ['Golden Visa?','Golden Visa','GOLDEN VISA','golden_visa'],
   motivation:  ['Motivation / Reason','Motivation','MOTIVATION','reason'],
   vacancy:     ['Vacancy Status','VACANCY','vacancy','Vacant?','VACANCY_STATUS'],
-  nationality: ['Nationality','NATIONALITY','national','NATIONALITY_NAME','OWNER_NATIONALITY'],
+  // ── Nationality: DLD OWNER_NATIONALITY ─────────────────────────
+  nationality: ['OWNER_NATIONALITY','Nationality','NATIONALITY','national','NATIONALITY_NAME'],
   source:      ['Source','SOURCE','source','Lead Source'],
   notes:       ['Agent Notes','Notes','NOTES','notes','Comment','REMARKS','PROPERTY_NOTES'],
   stage:       ['Stage','STAGE','stage','Status','STATUS'],
   moveIn:      ['Move-in / Need By Date','Move-in Date','MOVE IN','move_in'],
   urgency:     ['Urgency (Hot/Warm/Cool)','Urgency','URGENCY','Priority'],
   message:     ['MSG WA ','MSG WA','wa_message','message','WA Message'],
-  regDate:     ['REG_DATE','REGISTRATION_DATE','Transaction Date','TRANS_DATE','Date','DATE']
+  // ── Registration date: DLD REG_DATE / TRANS_DATE ───────────────
+  regDate:     ['REG_DATE','TRANS_DATE','REGISTRATION_DATE','Transaction Date','Date','DATE']
 };
 
 function campSave(){
@@ -8316,22 +8329,37 @@ async function gsCampaignSaveToSheet(){
 // -- CAMPAIGN: DOWNLOAD DLD-COMPATIBLE TEMPLATE --
 function campDLDTemplate(){
   var template = [{
-    NAME: 'Mohammed Al Rashidi',
+    OWNER_NAME: 'Mohammed Al Rashidi',
+    FIRST_NAME: 'Mohammed',
     MOBILE_NO: '971501234567',
+    MOBILE_NUMBER: '',
     EMAIL: 'example@email.com',
     COMMUNITY_NAME: 'The Springs',
-    SUB_COMMUNITY_NAME: 'Springs 3',
+    MASTER_PROJECT: 'Emirates Living',
+    BUILDING_NAME: 'Springs 3',
     UNIT_NO: 'Villa 12',
-    NO_OF_BEDROOMS: '3',
-    PROPERTY_TYPE: 'Villa',
+    VILLA_NO: '',
+    FLAT_NO: '',
+    NUMBER_OF_BEDROOMS: '3',
+    ROOMS: '',
+    LOCATION: 'The Springs, Emirates Living, Dubai',
+    FULL_ADDRESS: 'Villa 12, Springs 3, Emirates Living, Dubai',
     PLOT_NO: 'P-1234',
+    LAND_NUMBER: '',
     TITLE_DEED_NO: 'TD-56789',
+    DEED_NO: '',
+    TRANS_NO: '',
+    'P-NUMBER': '',
+    'PERMIT NUMBER': '',
     ACTUAL_AREA: '2400',
+    AREA_SQFT: '',
     TRANS_VALUE: '3200000',
-    NATIONALITY_NAME: 'Emirati',
+    SALE_VALUE: '',
+    OWNER_NATIONALITY: 'Emirati',
     VACANCY_STATUS: 'Vacant',
     REMARKS: 'Interested in selling',
-    REG_DATE: '2026-01-15'
+    REG_DATE: '2026-01-15',
+    TRANS_DATE: ''
   }];
   var ws = XLSX.utils.json_to_sheet(template);
   var wb = XLSX.utils.book_new();
