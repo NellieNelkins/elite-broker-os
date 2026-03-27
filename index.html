@@ -3695,7 +3695,7 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
           <table class="crm-tbl" id="campPreviewTable">
             <thead><tr>
               <th style="width:22px"><input type="checkbox" id="campSelAll" onchange="campToggleAll(this)" style="accent-color:var(--g2)"></th>
-              <th>Name</th><th>Phone</th><th>Community</th><th>Beds</th><th>Type</th>
+              <th>Name</th><th>Phone</th><th>Full Address</th><th>Community</th><th>Beds</th><th>Type</th>
             </tr></thead>
             <tbody id="campPreviewBody"></tbody>
           </table>
@@ -7322,13 +7322,13 @@ function campProcessRows(rows, filename){
 
   if(bodyEl){
     bodyEl.innerHTML = parsed.slice(0,100).map(function(c,i){
+      var addr = (c.fullAddress||c.property||'—').slice(0,30);
       return '<tr>'
         +'<td><input type="checkbox" class="camp-sel" data-idx="'+i+'" checked style="accent-color:var(--g2)"></td>'
         +'<td style="font-size:11px;font-weight:500">'+campEsc(c.name)+'</td>'
         +'<td style="font-family:var(--mono);font-size:10px;color:var(--wa)">'+c.phone+'</td>'
-        +'<td style="font-size:10px;color:var(--t2)">'+c.email+'</td>'
+        +'<td style="font-size:10px;color:var(--muted)" title="'+(c.fullAddress||c.property||'')+'">'+campEsc(addr)+'</td>'
         +'<td style="font-size:10px;color:var(--gold)">'+c.community+'</td>'
-        +'<td style="font-size:10px;color:var(--t3)">'+c.property.slice(0,20)+'</td>'
         +'<td style="font-size:10px">'+c.bedrooms+'</td>'
         +'<td><select class="camp-type-sel" data-idx="'+i+'" style="font-size:10px;background:transparent;border:none;color:var(--t2);cursor:pointer">'
         +'<option value="Seller"'+(c.type==='Seller'?' selected':'')+'>Seller</option>'
@@ -8373,7 +8373,7 @@ async function campLoadFromSheet(){
   var btn = document.querySelector('[onclick="campLoadFromSheet()"]');
   if(btn){ btn.textContent = '⏳ Loading…'; btn.disabled = true; }
   try {
-    var result = await gsGet({ action: 'read', sheet: 'Campaigns' });
+    var result = await gsPost({ action: 'read', sheet: 'Campaigns' });
     if(!result || !result.rows || !result.rows.length){
       toast('No contacts found in Google Sheet Campaigns tab', true);
       if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
@@ -9219,7 +9219,17 @@ function campParseFile(file){
         function v(f){ var i=colIdx[f]; return i>=0?String(r[i]||'').trim():''; }
         var nm = v('name'); if(!nm) return null;
         var p1 = v('phone').replace(/[^0-9]/g,'');
-        var ctype = v('type') || ((document.getElementById('campDefaultType')||{}).value) || 'Buyer';
+        // Auto-detect type: DLD/owner data = Seller, buyer lists = Buyer
+        var rawType = v('type') || ((document.getElementById('campDefaultType')||{}).value) || '';
+        var ctype = rawType || (function(){
+          var hdrsStr = bestHdrs.join('|').toLowerCase();
+          if(/buyer|purchaser|renter|tenant/i.test(hdrsStr)) return 'Buyer';
+          if(/landlord/i.test(hdrsStr)) return 'Landlord';
+          if(/investor/i.test(hdrsStr)) return 'Investor';
+          // DLD owner exports → Seller by default
+          if(/owner_name|owner name|owner|title_deed|deed|plot_no|trans_value|actual_area/i.test(hdrsStr)) return 'Seller';
+          return 'Seller'; // safe default for DLD data
+        })();
         return {
           id:'c_'+Date.now()+'_'+ri, name:nm,
           phone:p1, phone2:v('phone2').replace(/[^0-9]/g,''), phone3:v('phone3').replace(/[^0-9]/g,''),
@@ -9281,11 +9291,13 @@ function campParseFile(file){
       if(prevEl) prevEl.style.display='block';
       if(tbody){
         tbody.innerHTML=campPreviewData.slice(0,100).map(function(c,i){
+          var addr = (c.fullAddress||c.property||'—').slice(0,30);
           return '<tr>'
             +'<td><input type="checkbox" class="camp-sel" data-idx="'+i+'" checked style="accent-color:var(--gold)"></td>'
             +'<td>'+campEsc(c.name)+'</td>'
-            +'<td>'+(c.phone||'—')+'</td>'
-            +'<td>'+(c.community||'—')+'</td>'
+            +'<td style="font-family:var(--mono);font-size:10px">'+(c.phone||'—')+'</td>'
+            +'<td style="font-size:10px;color:var(--muted)" title="'+(c.fullAddress||c.property||'')+'">'+campEsc(addr)+'</td>'
+            +'<td style="color:var(--gold)">'+(c.community||'—')+'</td>'
             +'<td>'+(c.bedrooms||'—')+'</td>'
             +'<td><select class="camp-type-sel crm-ipt" data-idx="'+i+'" style="font-size:9px;padding:2px 5px">'
             +['Seller','Landlord','Buyer','Investor','Tenant','End-User'].map(function(t){
