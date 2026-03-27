@@ -8188,7 +8188,7 @@ function campImportXlsx(){ document.getElementById('campFile').click(); }
 // ===================================================================
 
 var GS = {
-  url:         localStorage.getItem('eb_gs_url') || 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec',
+  url:         localStorage.getItem('eb_gs_url') || 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec',
   syncActive:  true,
   lastSync:    null,
   syncInterval:null,
@@ -8218,7 +8218,7 @@ async function gsGet(params) {
     }
   } catch(e1) {}
   // Fallback: call Apps Script directly
-  var gsDirectUrl = GS.url || 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var gsDirectUrl = GS.url || 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   try {
     var res2 = await fetch(gsDirectUrl+'?'+qs, {
       method:'GET', redirect:'follow', signal:AbortSignal.timeout(10000)
@@ -8269,7 +8269,7 @@ async function gsPost(body) {
   // Both paths failed — queue for later retry
   if(GS&&GS.pending) GS.pending.push(body);
   // Try direct one more time with different content-type
-  var gsDirectUrl2 = GS.url || 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var gsDirectUrl2 = GS.url || 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   try {
     var res3 = await fetch(gsDirectUrl2, {
       method:'POST', redirect:'follow',
@@ -8801,7 +8801,7 @@ async function gsTestConnection() {
   if(sEl) sEl.innerHTML = '<span class="load-spinner sm"></span> Testing connection…';
   if(dEl) dEl.className = 'wa-dot syncing';
   if(!GS.url){
-    GS.url = 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+    GS.url = 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
     localStorage.setItem('eb_gs_url', GS.url);
   }
 
@@ -8860,7 +8860,7 @@ async function gsTestConnection() {
 
 (function(){
   if(typeof GS==='undefined') return;
-  var url=GS.url||localStorage.getItem('eb_gs_url')||'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var url=GS.url||localStorage.getItem('eb_gs_url')||'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   if(!url) return;
   GS.url=url; localStorage.setItem('eb_gs_url',url);
   var inp=document.getElementById('gsUrlInput'); if(inp) inp.value=url;
@@ -9060,7 +9060,7 @@ function _doBlastSend(contacts) {
 //  GS — FORCE DEFAULT URL & STAY CONNECTED
 // ==========================================================================
 (function setGSDefaults(){
-  var DEFAULT_GS = 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var DEFAULT_GS = 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   if (!localStorage.getItem('eb_gs_url')) {
     localStorage.setItem('eb_gs_url', DEFAULT_GS);
   }
@@ -9722,7 +9722,7 @@ function gsWizardStep(n) {
 }
 
 function gsQuickConnect() {
-  var DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var DEFAULT_URL = 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   GS.url = DEFAULT_URL;
   localStorage.setItem('eb_gs_url', DEFAULT_URL);
   localStorage.setItem('gs_connected','1');
@@ -9870,7 +9870,7 @@ function campApplyBulkType(type){
 
 // Force the new sheet as permanent default
 (function initDefaultGS(){
-  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwm1XVgAp6Jjo5IbP7WtU7KJqbT7y7loWZbjxZvPp8-6ZuA9GF8lMOfmCYQzTHZNms/exec';
+  var SHEET_URL = 'https://script.google.com/macros/s/AKfycbwVOhOUSsuuEpSepz0O4NNtHQCLf1M9w3LlDxGsDIN9YoQck6P3b09wAtY2QN-0fvKiyw/exec';
   // Always set — even if user previously saved a different URL
   if(!localStorage.getItem('eb_gs_url') || localStorage.getItem('eb_gs_url') !== SHEET_URL){
     localStorage.setItem('eb_gs_url', SHEET_URL);
