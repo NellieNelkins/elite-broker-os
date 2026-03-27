@@ -8333,21 +8333,17 @@ async function gsCampaignSaveToSheet(){
   if(status){ status.style.display='block'; status.style.color='var(--muted)'; status.textContent='Connecting to Google Sheet…'; }
 
   try {
-    // Step 1: clear the Campaigns sheet first (clean replace)
-    if(status) status.textContent = 'Clearing existing sheet data…';
-    var clearResult = await gsPost({ action:'clear', sheet:'Master Contacts' });
-    if(clearResult === null) throw new Error('No response from Apps Script — check deployment settings');
-    if(clearResult && clearResult.ok === false) throw new Error(clearResult.error || 'Clear failed');
-
-    // Step 2: write in chunks using batchUpsert
+    // Send clearBefore:true on first chunk — Apps Script clears with clearContent()
+    // instead of a separate clear action (avoids "cannot delete all non-frozen rows" error)
     for(var i=0; i<batches; i++){
       var chunk = campDB.slice(i*CHUNK, (i+1)*CHUNK);
       var pct   = Math.round(((i+1)/batches)*100);
 
-      if(status) status.textContent='Writing batch '+(i+1)+'/'+batches+' · '+Math.min((i+1)*CHUNK,total)+'/'+total+' contacts…';
+      if(i===0 && status) status.textContent = 'Clearing existing sheet data…';
+      if(status && i>0) status.textContent='Writing batch '+(i+1)+'/'+batches+' · '+Math.min((i+1)*CHUNK,total)+'/'+total+' contacts…';
       if(btn) btn.textContent='⏳ '+pct+'%';
 
-      var result = await gsPost({ action:'batchUpsert', sheet:'Master Contacts', rows:chunk, idField:'id' });
+      var result = await gsPost({ action:'batchUpsert', sheet:'Master Contacts', rows:chunk, idField:'id', clearBefore: i===0 });
 
       if(result === null) throw new Error('No response on batch '+(i+1)+' — connection dropped');
       if(result && result.ok === false) throw new Error(result.error || 'Batch '+(i+1)+' failed');
