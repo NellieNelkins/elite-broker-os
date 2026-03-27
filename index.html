@@ -9607,13 +9607,16 @@ gsTestConnection = async function() {
 // ── Campaign Confirm Import ──────────────────────────────────────
 var _origCampConfirm = campConfirmImport;
 campConfirmImport = function() {
-  showLoading('Importing contacts…', 'Merging into Master Contacts · deduplicating…', '', true);
-  setLoadingProgress(30);
+  try { showLoading('Importing contacts…', 'Merging into Master Contacts · deduplicating…', '', true); } catch(e){}
+  try { setLoadingProgress(30); } catch(e){}
   try {
     _origCampConfirm();
-    setLoadingProgress(100);
+    try { setLoadingProgress(100); } catch(e){}
+  } catch(err) {
+    toast('Import error: ' + (err && err.message ? err.message : String(err)), true);
+    console.error('campConfirmImport error:', err);
   } finally {
-    setTimeout(hideLoading, 600);
+    setTimeout(function(){ try{ hideLoading(); }catch(e){} }, 600);
   }
 };
 
