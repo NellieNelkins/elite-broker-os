@@ -3568,11 +3568,14 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
 <div id="page-campaigns" class="page">
 <div class="sec-hd">
   <div><div class="sec-title">WA <em>Campaigns</em></div><div class="sec-sub">Import contacts · auto follow-up flows · smart sequencing</div></div>
-  <div style="display:flex;gap:6px">
+  <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
     <button class="btn" onclick="campImportXlsx()">📊 Import</button>
+    <button class="btn" onclick="campExportXlsx()" style="background:var(--card2);border-color:var(--border)">⬇ Export</button>
+    <button class="btn" onclick="gsCampaignSaveToSheet()" id="campGsBtn" style="background:var(--card2);border-color:rgba(61,184,122,.3);color:var(--grn)">☁ Save to Sheet</button>
     <button class="btn btn-gold" onclick="campRunAll()">⚡ Run Campaign</button>
   </div>
 </div>
+<div id="campGsStatus" style="display:none;padding:5px 0 8px 0;font-size:10px;color:var(--muted);letter-spacing:.04em"></div>
 
 <!-- Stats strip -->
 <div class="g4" style="margin-bottom:12px">
@@ -7515,6 +7518,8 @@ function campRemoveContact(id){
   campSave();
   campRenderContacts();
   campUpdateStats();
+  // Sync deletion to Google Sheet
+  gsPost({ action: 'delete', sheet: 'Campaigns', id: id, idField: 'id' });
 }
 
 async function campGenMsg(id){
@@ -8280,6 +8285,39 @@ async function gsUpsert(sheet, row, idField) {
 async function gsBulkWrite(sheet, rows, mode) {
   if (!rows || !rows.length) return;
   return await gsPost({ action: 'bulk_write', sheet: sheet, rows: rows, mode: mode || 'replace' });
+}
+
+// -- CAMPAIGN: SAVE ALL CONTACTS TO GOOGLE SHEET --
+async function gsCampaignSaveToSheet(){
+  var btn = document.getElementById('campGsBtn');
+  var status = document.getElementById('campGsStatus');
+  if(!campDB || !campDB.length){ toast('No contacts to save', true); return; }
+  if(btn){ btn.textContent = '⏳ Saving…'; btn.disabled = true; }
+  if(status){ status.style.display = 'block'; status.textContent = 'Syncing '+campDB.length+' contacts to Google Sheet…'; }
+  try {
+    var result = await gsBulkWrite('Campaigns', campDB, 'replace');
+    var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    if(btn){ btn.textContent = '✓ Saved'; btn.style.color = 'var(--grn)'; }
+    if(status){ status.textContent = '✓ '+campDB.length+' contacts synced to Sheet · Last sync: '+ts; status.style.color = 'var(--grn)'; }
+    toast('✓ '+campDB.length+' contacts saved to Google Sheet');
+    setTimeout(function(){
+      if(btn){ btn.textContent = '☁ Save to Sheet'; btn.disabled = false; }
+    }, 3000);
+  } catch(e) {
+    if(btn){ btn.textContent = '☁ Save to Sheet'; btn.disabled = false; }
+    if(status){ status.textContent = '✗ Sync failed — check Google Sheet connection'; status.style.color = 'var(--red)'; }
+    toast('Sync failed — check connection settings', true);
+  }
+}
+
+// -- CAMPAIGN: EXPORT CONTACTS TO EXCEL --
+function campExportXlsx(){
+  if(!campDB || !campDB.length){ toast('No contacts to export', true); return; }
+  var ws = XLSX.utils.json_to_sheet(campDB);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Campaigns');
+  XLSX.writeFile(wb, 'campaigns_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  toast('✓ Exported '+campDB.length+' contacts');
 }
 
 // -- SYNC ALL DATA TO SHEETS --
@@ -9915,7 +9953,7 @@ function campSaveModal(){
   });
   if(_campModalSrc === 'campDB'){
     var c = campDB.find(function(x){ return x.id===_campModalId; });
-    if(c){ Object.assign(c, updates); campSave(); campRenderContacts(); gsWriteContact(c); }
+    if(c){ Object.assign(c, updates); campSave(); campRenderContacts(); gsWriteContact(c); gsPost({ action:'upsert', sheet:'Campaigns', row:c, idField:'id' }); }
   } else if(_campModalSrc === 'preview'){
     var cp = (campPreviewData||[])[_campPreviewIdx];
     if(cp){ Object.assign(cp, updates); }
@@ -9932,6 +9970,7 @@ function campDeleteFromModal(){
   if(_campModalSrc === 'campDB'){
     campDB = campDB.filter(function(c){ return c.id!==_campModalId; });
     campSave(); campRenderContacts(); campUpdateStats();
+    gsPost({ action:'delete', sheet:'Campaigns', id:_campModalId, idField:'id' });
   } else if(_campModalSrc === 'preview'){
     if(_campPreviewIdx !== null) campPreviewData.splice(_campPreviewIdx, 1);
   }
