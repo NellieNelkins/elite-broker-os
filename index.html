@@ -7534,8 +7534,9 @@ function campRemoveContact(id){
   campSave();
   campRenderContacts();
   campUpdateStats();
-  // Sync deletion to Google Sheet
-  gsPost({ action: 'delete', sheet: 'Campaigns', id: id, idField: 'id' });
+  // Re-sync full sheet after delete (Apps Script has no delete action — full replace)
+  clearTimeout(campRemoveContact._gsTimer);
+  campRemoveContact._gsTimer = setTimeout(gsCampaignSaveToSheet, 2000);
 }
 
 async function campGenMsg(id){
@@ -8301,10 +8302,11 @@ async function gsUpsert(sheet, row, idField) {
   return await gsPost({ action: 'upsert', sheet: sheet, row: row, idField: idField || 'id' });
 }
 
-// -- BULK WRITE --
+// -- BULK WRITE (uses Apps Script batchUpsert + clear for replace mode) --
 async function gsBulkWrite(sheet, rows, mode) {
   if (!rows || !rows.length) return;
-  return await gsPost({ action: 'bulk_write', sheet: sheet, rows: rows, mode: mode || 'replace' });
+  if ((mode || 'replace') === 'replace') await gsPost({ action: 'clear', sheet: sheet });
+  return await gsPost({ action: 'batchUpsert', sheet: sheet, rows: rows, idField: 'id' });
 }
 
 // -- CAMPAIGN: SAVE ALL CONTACTS TO GOOGLE SHEET (chunked via Worker proxy) --
@@ -8323,22 +8325,24 @@ async function gsCampaignSaveToSheet(){
   if(status){ status.style.display='block'; status.style.color='var(--muted)'; status.textContent='Connecting to Google Sheet…'; }
 
   try {
+    // Step 1: clear the Campaigns sheet first (clean replace)
+    if(status) status.textContent = 'Clearing existing sheet data…';
+    var clearResult = await gsPost({ action:'clear', sheet:'Campaigns' });
+    if(clearResult === null) throw new Error('No response from Apps Script — check deployment settings');
+    if(clearResult && clearResult.ok === false) throw new Error(clearResult.error || 'Clear failed');
+
+    // Step 2: write in chunks using batchUpsert
     for(var i=0; i<batches; i++){
       var chunk = campDB.slice(i*CHUNK, (i+1)*CHUNK);
-      var mode  = i===0 ? 'replace' : 'append';
       var pct   = Math.round(((i+1)/batches)*100);
 
       if(status) status.textContent='Writing batch '+(i+1)+'/'+batches+' · '+Math.min((i+1)*CHUNK,total)+'/'+total+' contacts…';
       if(btn) btn.textContent='⏳ '+pct+'%';
 
-      var result = await gsPost({ action:'bulk_write', sheet:'Campaigns', rows:chunk, mode:mode });
+      var result = await gsPost({ action:'batchUpsert', sheet:'Campaigns', rows:chunk, idField:'id' });
 
-      if(result === null){
-        throw new Error('No response — check Apps Script is deployed as "Anyone" access');
-      }
-      if(result && result.ok === false){
-        throw new Error(result.error || 'Apps Script returned error');
-      }
+      if(result === null) throw new Error('No response on batch '+(i+1)+' — connection dropped');
+      if(result && result.ok === false) throw new Error(result.error || 'Batch '+(i+1)+' failed');
     }
 
     var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
@@ -8403,7 +8407,7 @@ async function campLoadFromSheet(){
   var btn = document.querySelector('[onclick="campLoadFromSheet()"]');
   if(btn){ btn.textContent = '⏳ Loading…'; btn.disabled = true; }
   try {
-    var result = await gsPost({ action: 'read', sheet: 'Campaigns' });
+    var result = await gsPost({ action: 'get', sheet: 'Campaigns' });
     if(!result || !result.rows || !result.rows.length){
       toast('No contacts found in Google Sheet Campaigns tab', true);
       if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
@@ -8501,7 +8505,7 @@ async function gsLoadAll() {
   var loaded = {};
   
   for (var i = 0; i < sheets.length; i++) {
-    var result = await gsGet({ action: 'read', sheet: capitalize(sheets[i]) });
+    var result = await gsGet({ action: 'get', sheet: capitalize(sheets[i]) });
     if (result && result.rows) loaded[sheets[i]] = result.rows;
   }
   
@@ -10106,7 +10110,9 @@ function campDeleteFromModal(){
   if(_campModalSrc === 'campDB'){
     campDB = campDB.filter(function(c){ return c.id!==_campModalId; });
     campSave(); campRenderContacts(); campUpdateStats();
-    gsPost({ action:'delete', sheet:'Campaigns', id:_campModalId, idField:'id' });
+    // Re-sync full sheet (Apps Script has no delete action)
+    clearTimeout(campDeleteFromModal._gsTimer);
+    campDeleteFromModal._gsTimer = setTimeout(gsCampaignSaveToSheet, 2000);
   } else if(_campModalSrc === 'preview'){
     if(_campPreviewIdx !== null) campPreviewData.splice(_campPreviewIdx, 1);
   }
