@@ -7368,22 +7368,30 @@ function campConfirmImport(){
     if(campPreviewData[idx]) campPreviewData[idx].type = sel.value;
   });
 
-  // Filter selected
+  // Filter selected — include ALL preview rows for large imports (checkboxes only exist for first 100)
   var selected = [];
-  document.querySelectorAll('.camp-sel').forEach(function(cb){
-    if(cb.checked){
-      var idx = parseInt(cb.getAttribute('data-idx'));
-      if(campPreviewData[idx]) selected.push(campPreviewData[idx]);
-    }
-  });
+  if((campPreviewData||[]).length > 100){
+    // Take all rows; respect any unchecked boxes in the visible first 100
+    var unchecked = new Set();
+    document.querySelectorAll('.camp-sel:not(:checked)').forEach(function(cb){
+      unchecked.add(parseInt(cb.getAttribute('data-idx')));
+    });
+    selected = (campPreviewData||[]).filter(function(c, idx){ return !unchecked.has(idx); });
+  } else {
+    document.querySelectorAll('.camp-sel').forEach(function(cb){
+      if(cb.checked){
+        var idx = parseInt(cb.getAttribute('data-idx'));
+        if(campPreviewData[idx]) selected.push(campPreviewData[idx]);
+      }
+    });
+  }
 
-  // Dedup if checked
+  // Dedup by PHONE only — name dedup removed (common names like Mohammed are shared by hundreds)
   var dedup = (document.getElementById('campDedup')||{}).checked !== false;
   if(dedup){
     var existPhones = new Set(campDB.map(function(c){ return c.phone; }).filter(Boolean));
-    var existNames  = new Set(campDB.map(function(c){ return c.name.toLowerCase(); }));
     selected = selected.filter(function(c){
-      return !(c.phone && existPhones.has(c.phone)) && !existNames.has(c.name.toLowerCase());
+      return !(c.phone && existPhones.has(c.phone));
     });
   }
 
@@ -8816,18 +8824,18 @@ async function gsTestConnection() {
     // Don't return — fall through to try GS directly
   }
 
-  // STEP 2: Test the GS route
+  // STEP 2: Test the GS route via POST (Worker only forwards POSTs, not GETs)
   var result = null;
   try {
     result = await Promise.race([
-      gsGet({ action: 'ping' }),
+      gsPost({ action: 'ping' }),
       new Promise(function(_,r){ setTimeout(function(){ r(new Error('timeout')); }, 8000); })
     ]);
   } catch(e){ result = null; }
 
-  if(result && result.ok){
-    // Full success
-    var ts = result.ts ? new Date(result.ts).toLocaleTimeString('en-AE') : new Date().toLocaleTimeString('en-AE');
+  // Any non-null response means Apps Script is reachable (ping/unknown action both prove it's alive)
+  if(result !== null){
+    var ts = (result && result.ts) ? new Date(result.ts).toLocaleTimeString('en-AE') : new Date().toLocaleTimeString('en-AE');
     if(sEl) sEl.textContent = '✓ Connected — ' + ts;
     if(dEl) dEl.className = 'wa-dot online';
     GS.syncActive = true;
