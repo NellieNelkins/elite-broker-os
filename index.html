@@ -3023,7 +3023,10 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
   <div style="background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px 16px;margin-bottom:18px">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div>
-        <div class="crm-lbl" style="margin-bottom:9px">Filter contacts</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px">
+          <span class="crm-lbl" style="margin:0">Filter contacts</span>
+          <button class="btn-ghost2 btn-sm2" onclick="openSmartListPicker(function(contacts,sl){ crmFilter='__smartlist__'; crmC._smartList=contacts; document.querySelectorAll('#crmFilters .crm-fpill').forEach(function(p){p.classList.remove('on');}); crmRenderOutbox(); toast('✓ Filtered to '+contacts.length+' from: '+(sl?sl.name:'list')); },'Filter Compose by Smart List')" style="color:var(--gold);border-color:rgba(201,168,76,.3);font-size:9px;padding:3px 8px">📋 Smart List</button>
+        </div>
         <div class="crm-filters" id="crmFilters">
           <div class="crm-fpill on" data-f="all" onclick="setCF('all',this)">All</div>
           <div class="crm-fpill" data-f="urgent" onclick="setCF('urgent',this)">🔴 Urgent 14d+</div>
@@ -3064,7 +3067,7 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
     <div style="display:flex;gap:8px"><button class="btn-ghost2 btn-sm2" onclick="crmExportXlsx()">⬇ Export</button><button class="btn-gold2 btn-sm2" onclick="openCrmAdd()">+ Add Contact</button></div>
   </div>
   <div class="crm-stats" id="crmDbStats"></div>
-  <div class="crm-search"><span class="crm-search-ico">🔍</span><input class="crm-ipt" id="crmCtSearch" placeholder="Search name, phone, type, stage, notes…" oninput="crmRenderContacts()"></div>
+  <div class="crm-search"><span class="crm-search-ico">🔍</span><input class="crm-ipt" id="crmCtSearch" placeholder="Search name, phone, type, stage, notes…" oninput="crmSearch()"></div>
   <div class="crm-filters" id="crmCtFilters">
     <div class="crm-fpill on" data-cf="all" onclick="setCtF('all',this)">All</div>
     <div class="crm-fpill" data-cf="Buyer" onclick="setCtF('Buyer',this)">Buyers</div>
@@ -3926,8 +3929,11 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
           <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchOwners" checked style="accent-color:var(--gold)"> Sellers &amp; Landlords</label>
           <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchAll" style="accent-color:var(--gold)"> All contacts (ignore type)</label>
         </div>
-        <button class="btn-ghost2" style="width:100%" onclick="blastMatchContacts()">🔍 Find Contacts</button>
-        <div id="blastMatchList" style="max-height:120px;overflow-y:auto;border:1px solid var(--rim);border-radius:8px;margin-top:8px"></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-ghost2" style="flex:1" onclick="blastMatchContacts()">🔍 Find Contacts</button>
+          <button class="btn-ghost2 btn-sm2" onclick="openSmartListPicker(function(contacts,sl){ window._blastMatched=contacts; var cnt=document.getElementById('blastTargetCount'); if(cnt)cnt.textContent=contacts.length+' matched'; blastMatchContacts._renderList(contacts); toast('✓ '+contacts.length+' contacts from: '+(sl?sl.name:'list')); },'Load Smart List into Target')" style="color:var(--gold);border-color:rgba(201,168,76,.3);white-space:nowrap">📋 Smart List</button>
+        </div>
+        <div id="blastMatchList" style="max-height:150px;overflow-y:auto;border:1px solid var(--rim);border-radius:8px;margin-top:8px"></div>
       </div>
     </div>
     <div class="card">
@@ -6271,6 +6277,7 @@ var waGenCount       = 0;
 //  WHATSAPP CRM ENGINE — from whatsapp-crm.html
 // ========================================
 var crmC = (function(){ try{ return JSON.parse(localStorage.getItem('wa_c')||'[]')||[]; }catch(e){return[];} })();
+var crmCtPage = 0;  // pagination for WA Contacts
 var crmS = (function(){ try{ return JSON.parse(localStorage.getItem('wa_s')||'[]')||[]; }catch(e){return[];} })();
 var crmKey = localStorage.getItem('wa_key')||localStorage.getItem('eb_apiKey')||localStorage.getItem('anthropic_api_key')||'';
 var crmDrafts = {};
@@ -6375,6 +6382,7 @@ function setCrmTone(el) {
 }
 function crmFilteredC() {
   var c = crmC;
+  if (crmFilter==='__smartlist__') return Array.isArray(crmC._smartList) ? crmC._smartList : c;
   if (crmFilter==='all')      return c;
   if (crmFilter==='urgent')   return c.filter(function(x){return x.last>=14;});
   if (crmFilter==='followup') return c.filter(function(x){return x.last>=7;});
@@ -6567,7 +6575,7 @@ function crmApproveAndSend() {
 
 // -- CONTACTS TABLE --
 function setCtF(f,el){
-  crmCtFilter=f;
+  crmCtFilter=f; crmCtPage=0;
   document.querySelectorAll('#crmCtFilters .crm-fpill').forEach(function(x){x.classList.remove('on');});
   if(el)el.classList.add('on');
   crmRenderContacts();
@@ -6583,8 +6591,15 @@ function crmRenderContacts() {
     if(crmCtFilter==='nophone') return !c.phone;
     return c.type===crmCtFilter;
   });
+  // Pagination
+  var CRM_PER = 50;
+  var totalCrm = list.length;
+  if(crmCtPage * CRM_PER >= totalCrm) crmCtPage = Math.max(0, Math.ceil(totalCrm/CRM_PER)-1);
+  var pageList = list.slice(crmCtPage*CRM_PER, (crmCtPage+1)*CRM_PER);
   var sub=document.getElementById('crmCtSub');
-  if(sub)sub.textContent=list.length+' of '+crmC.length+' contacts';
+  if(sub)sub.textContent=(totalCrm>CRM_PER
+    ? 'Showing '+(crmCtPage*CRM_PER+1)+'–'+Math.min((crmCtPage+1)*CRM_PER,totalCrm)+' of '+totalCrm
+    : totalCrm+' of '+crmC.length)+' contacts'+(crmC.length>totalCrm?' (filtered)':'');
   var hot=crmC.filter(function(x){return x.priority==='HOT';}).length;
   var urg=crmC.filter(function(x){return x.last>=14;}).length;
   var waC=crmC.filter(function(x){return x.wa;}).length;
@@ -6595,29 +6610,53 @@ function crmRenderContacts() {
     +'<div class="crm-stat"><div class="crm-stat-lbl">From WhatsApp</div><div class="crm-stat-val accent">'+waC+'</div></div>';
   var tbody=document.getElementById('crmCtBody');
   if(!tbody) return;
-  if(tbody){if(!list.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--t4)">No contacts match this filter</td></tr>';return;}}
-  tbody.innerHTML=list.map(function(c){
-    var urgC=c.last>=14?'sb-hot':c.last>=7?'sb-warm':'sb-cold';
-    return '<tr>'
-      +'<td><input type="checkbox" class="crm-rck" data-id="'+c.id+'" onchange="crmUpdateBulk()" style="accent-color:var(--g2)"></td>'
-      +'<td><div style="display:flex;align-items:center;gap:9px">'
-        +'<div class="av3'+(c.wa?' av3-wa':'')+'" style="width:30px;height:30px;font-size:11px">'+crmInitials(c.name)+'</div>'
-        +'<div><div style="font-size:13px;font-weight:600">'+crmEsc(c.name)+'</div>'+(c.nat?'<div style="font-size:10px;color:var(--t3)">'+crmEsc(c.nat)+'</div>':'')+'</div>'
-      +'</div></td>'
-      +'<td><a href="https://wa.me/'+(c.phone||'').replace(/[\s\-\(\)]/g,'')+'" target="_blank" style="color:var(--wa);font-size:12px;font-family:var(--mono)">'+(c.phone||'—')+'</a></td>'
-      +'<td><span class="sbadge sb-cold">'+c.type+'</span></td>'
-      +'<td><span class="sbadge '+(['Under Offer','Closed'].includes(c.stage)?'sb-ok':c.stage==='Offer Made'?'sb-hot':'sb-cold')+'">'+c.stage+'</span></td>'
-      +'<td><span class="sbadge '+urgC+'">'+c.last+'d</span></td>'
-      +'<td style="font-family:var(--mono);color:var(--g3);font-size:12px">'+(c.value?'AED '+crmFmt(c.value):'—')+'</td>'
-      +'<td style="font-size:11px;color:var(--t3)">'+(c.source||'—')+'</td>'
-      +'<td><div style="display:flex;gap:5px">'
-        +'<button class="crm-wa-btn btn-ghost2 btn-sm2" data-cid="'+c.id+'" data-phone="'+(c.phone||'')+'" title="WhatsApp" style="color:#25D366">💬</button> '+'<button class="crm-wa-btn btn-ghost2 btn-sm2" data-cid="'+c.id+'" data-phone="'+(c.phone||'')+'" title="WhatsApp" style="color:#25D366">💬</button>'
-        +'<button class="btn-ghost2 btn-sm2" onclick="crmQuickMsg(\''+c.id+'\')" title="Draft message">✉</button>'
-        +'<button class="btn-ghost2 btn-sm2" onclick="crmEditContact(\''+c.id+'\')" title="Edit">✏</button>'
-        +'<button class="btn-danger2 btn-sm2" onclick="crmDelContact(\''+c.id+'\')" title="Delete">✕</button>'
-      +'</div></td>'
-    +'</tr>';
-  }).join('');
+  if(tbody){
+    if(!pageList.length){
+      tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--t4)">'
+        +(totalCrm===0?'No contacts match this filter':'No contacts on this page')+'</td></tr>';
+    } else {
+      tbody.innerHTML=pageList.map(function(c){
+        var urgC=c.last>=14?'sb-hot':c.last>=7?'sb-warm':'sb-cold';
+        return '<tr>'
+          +'<td><input type="checkbox" class="crm-rck" data-id="'+c.id+'" onchange="crmUpdateBulk()" style="accent-color:var(--g2)"></td>'
+          +'<td><div style="display:flex;align-items:center;gap:9px">'
+            +'<div class="av3'+(c.wa?' av3-wa':'')+'" style="width:30px;height:30px;font-size:11px">'+crmInitials(c.name)+'</div>'
+            +'<div><div style="font-size:13px;font-weight:600">'+crmEsc(c.name)+'</div>'+(c.nat?'<div style="font-size:10px;color:var(--t3)">'+crmEsc(c.nat)+'</div>':'')+'</div>'
+          +'</div></td>'
+          +'<td><a href="https://wa.me/'+(c.phone||'').replace(/[\s\-\(\)]/g,'')+'" target="_blank" style="color:var(--wa);font-size:12px;font-family:var(--mono)">'+(c.phone||'—')+'</a></td>'
+          +'<td><span class="sbadge sb-cold">'+c.type+'</span></td>'
+          +'<td><span class="sbadge '+(['Under Offer','Closed'].includes(c.stage)?'sb-ok':c.stage==='Offer Made'?'sb-hot':'sb-cold')+'">'+c.stage+'</span></td>'
+          +'<td><span class="sbadge '+urgC+'">'+c.last+'d</span></td>'
+          +'<td style="font-family:var(--mono);color:var(--g3);font-size:12px">'+(c.value?'AED '+crmFmt(c.value):'—')+'</td>'
+          +'<td style="font-size:11px;color:var(--t3)">'+(c.source||'—')+'</td>'
+          +'<td><div style="display:flex;gap:5px">'
+            +'<button class="btn-ghost2 btn-sm2" onclick="crmQuickMsg(\''+c.id+'\')" title="Draft message">✉</button>'
+            +'<button class="btn-ghost2 btn-sm2" onclick="crmEditContact(\''+c.id+'\')" title="Edit">✏</button>'
+            +'<button class="btn-danger2 btn-sm2" onclick="crmDelContact(\''+c.id+'\')" title="Delete">✕</button>'
+          +'</div></td>'
+        +'</tr>';
+      }).join('');
+    }
+  }
+  // Pagination bar
+  var pgBar = document.getElementById('crmCtPagination');
+  if(!pgBar){
+    pgBar = document.createElement('div');
+    pgBar.id = 'crmCtPagination';
+    pgBar.style.cssText = 'padding:8px 14px;display:flex;align-items:center;gap:8px;border-top:1px solid var(--rim);flex-wrap:wrap';
+    var tbl = tbody && tbody.closest('table');
+    if(tbl && tbl.parentNode) tbl.parentNode.insertBefore(pgBar, tbl.nextSibling);
+  }
+  var totalPages = Math.ceil(totalCrm / CRM_PER);
+  if(totalPages <= 1){ pgBar.innerHTML=''; }
+  else {
+    var pgBtns = '';
+    if(crmCtPage>0) pgBtns += '<button class="btn-ghost2 btn-sm2" onclick="crmCtPage--; crmRenderContacts()">‹ Prev</button>';
+    pgBtns += '<span style="font-size:10px;color:var(--t3);margin:0 8px">Page '+(crmCtPage+1)+' of '+totalPages+'</span>';
+    if(crmCtPage<totalPages-1) pgBtns += '<button class="btn-ghost2 btn-sm2" onclick="crmCtPage++; crmRenderContacts()">Next ›</button>';
+    pgBtns += '<span style="font-size:10px;color:var(--t4);margin-left:auto">'+totalCrm+' total</span>';
+    pgBar.innerHTML = pgBtns;
+  }
 }
 function crmUpdateBulk(){
   var n=document.querySelectorAll('.crm-rck:checked').length;
@@ -6625,6 +6664,7 @@ function crmUpdateBulk(){
   var bb=document.getElementById('crmBulkBar'); if(bb)bb.style.display=n?'flex':'none';
 }
 function crmToggleAll(cb){ document.querySelectorAll('.crm-rck').forEach(function(x){x.checked=cb.checked;}); crmUpdateBulk(); }
+function crmSearch(){ crmCtPage=0; crmRenderContacts(); }
 async function crmBulkDraft(){
   var ids=[...document.querySelectorAll('.crm-rck:checked')].map(function(x){return x.dataset.id;});
   if(!ids.length) return;
@@ -8053,8 +8093,33 @@ function blastMatchContacts(){
     }
   }
   window._blastMatched=matched;
+  blastMatchContacts._renderList(matched);
   toast('✓ '+matched.length+' contacts matched for blast');
 }
+// Shared list renderer (also used by Smart List picker)
+blastMatchContacts._renderList = function(matched){
+  var listEl=document.getElementById('blastMatchList');
+  if(!listEl) return;
+  var cnt=document.getElementById('blastTargetCount');
+  if(cnt) cnt.textContent=matched.length+' matched';
+  if(!matched.length){
+    listEl.innerHTML='<div style="padding:14px;text-align:center;font-size:11px;color:var(--t3)">No contacts found</div>';
+    return;
+  }
+  var typeColor={'buyer':'var(--sa)','investor':'var(--gold)','seller':'var(--am)','landlord':'var(--vi)','tenant':'var(--blue)'};
+  listEl.innerHTML = matched.slice(0,100).map(function(c,i){
+    var ct=(c.type||'Contact').toLowerCase();
+    var col=typeColor[ct]||'var(--t3)';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--rim);font-size:11px">'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<input type="checkbox" class="blast-sel" data-idx="'+i+'" data-phone="'+(c.phone||'')+'" checked style="accent-color:var(--gold)">'
+      +'<div><div style="font-weight:500">'+(c.name||'—')+'</div>'
+      +'<div style="font-size:10px;margin-top:1px"><span style="color:'+col+'">'+campEsc(c.type||'Contact')+'</span>'+(c.community?' <span style="color:var(--t4)">· '+campEsc(c.community)+'</span>':'')+'</div></div></div>'
+      +'<span style="font-family:var(--mono);font-size:10px;color:var(--grn)">'+(c.phone||'—')+'</span>'
+    +'</div>';
+  }).join('')
+  +(matched.length>100?'<div style="padding:8px 12px;font-size:10px;color:var(--t3)">…and '+(matched.length-100)+' more</div>':'');
+};
 
 async function blastGenMsg(){
   if(!checkApiKey()) return;
@@ -10032,6 +10097,56 @@ function campRenderSmartLists(){
   }).join('');
 }
 
+// ── Smart List helpers ────────────────────────────────────────
+// Returns all contacts matching a smart list's criteria (from campDB)
+function campGetListContacts(id){
+  var sl = (typeof smartListsDB!=='undefined' ? smartListsDB : []).find(function(s){ return s.id===id; });
+  if(!sl) return [];
+  return (campDB||[]).filter(function(c){
+    if(sl.comm   && (c.community||'').toLowerCase().indexOf(sl.comm.toLowerCase())<0) return false;
+    if(sl.type   && c.type!==sl.type) return false;
+    if(sl.searchQ && [c.name,c.phone,c.community,c.type].join(' ').toLowerCase().indexOf(sl.searchQ.toLowerCase())<0) return false;
+    return true;
+  });
+}
+
+// Opens the Smart List picker modal; callback receives the selected contacts array
+function openSmartListPicker(callback, title){
+  if(typeof smartListsDB==='undefined'||!smartListsDB.length){
+    toast('No Smart Lists saved yet — create one in Campaigns', true);
+    return;
+  }
+  var rows = smartListsDB.map(function(sl){
+    var cnt = campGetListContacts(sl.id).length;
+    return '<div onclick="_slPickerSelect(\''+sl.id+'\',this)" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rim);transition:background .12s" class="_slrow">'
+      +'<div style="display:flex;align-items:center;gap:10px">'
+        +'<div style="width:30px;height:30px;border-radius:8px;background:rgba(201,168,76,.1);display:flex;align-items:center;justify-content:center">📋</div>'
+        +'<div>'
+          +'<div style="font-size:12px;font-weight:600;color:var(--t1)">'+campEsc(sl.name)+'</div>'
+          +'<div style="font-size:10px;color:var(--t3)">'+(sl.type||'All types')+(sl.comm?' · '+sl.comm:'')+'</div>'
+        +'</div>'
+      +'</div>'
+      +'<span style="font-family:var(--mono);font-size:11px;color:var(--gold);font-weight:700">'+cnt+'</span>'
+    +'</div>';
+  }).join('');
+  window._slPickerCb = callback;
+  openModal(
+    '<div style="padding:18px 16px 4px">'
+      +'<div style="font-size:15px;font-weight:700;margin-bottom:2px">📋 '+(title||'Select Smart List')+'</div>'
+      +'<div style="font-size:10px;color:var(--t3);margin-bottom:12px">All contacts matching the list criteria from your Campaign DB</div>'
+    +'</div>'
+    +'<div>'+rows+'</div>'
+    +'<div style="padding:12px 16px"><button class="btn-ghost2" style="width:100%" onclick="closeModal()">Cancel</button></div>'
+  );
+}
+function _slPickerSelect(id, el){
+  var contacts = campGetListContacts(id);
+  var sl = smartListsDB.find(function(s){ return s.id===id; });
+  closeModal();
+  if(typeof window._slPickerCb==='function') window._slPickerCb(contacts, sl);
+  window._slPickerCb = null;
+}
+
 function campApplyList(id){
   var sl = smartListsDB.find(function(s){ return s.id===id; });
   if(!sl) return;
@@ -10781,6 +10896,10 @@ function campOpenBatchModal(contacts){
     +'</div>'
     +'<div id="batchTplPreview" style="background:rgba(255,255,255,.04);border:1px solid var(--rim);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--t2);white-space:pre-wrap;max-height:120px;overflow-y:auto;margin-bottom:14px">'
       +campEsc(campBuildWAMessage(contacts[0]||{name:'[Name]',community:comm},WA_ACTIVE_TEMPLATE))
+    +'</div>'
+    +'<div style="margin-bottom:12px;padding:8px 10px;background:rgba(201,168,76,.04);border:1px solid rgba(201,168,76,.12);border-radius:8px;display:flex;align-items:center;justify-content:space-between">'
+      +'<span style="font-size:10px;color:var(--t3)"><strong style="color:var(--gold)" id="batchContactCount">'+contacts.length+'</strong> contacts in this batch</span>'
+      +'<button class="btn-ghost2 btn-sm2" onclick="openSmartListPicker(function(cts,sl){ window._batchContacts=cts; document.getElementById(\'batchContactCount\').textContent=cts.length; _batchRefreshPreview(null); },\'Switch to Smart List\')" style="color:var(--gold);font-size:9px;border-color:rgba(201,168,76,.3)">📋 Switch List</button>'
     +'</div>'
     +'<div style="display:flex;gap:8px;justify-content:flex-end">'
       +'<button class="btn-ghost2" onclick="closeModal()">Cancel</button>'
