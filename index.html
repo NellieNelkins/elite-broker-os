@@ -2818,6 +2818,23 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
   <div class="card">
     <div class="card-hd"><span class="card-title"><span style="width:5px;height:5px;border-radius:50%;background:var(--red);display:inline-block"></span>Follow-Up Radar</span>
     <div style="display:flex;gap:7px;align-items:center"><span id="rc" style="font-family:var(--mono);font-size:9px;color:var(--dim)"></span><button class="btn" onclick="openAI('contacts')" style="padding:4px 10px;font-size:9px">🤖 Scripts</button></div></div>
+    <div style="display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--rim);flex-wrap:wrap">
+      <input id="radarSearch" type="text" placeholder="🔍 Search name, phone, community…" oninput="rOverview()" style="flex:1;min-width:130px;background:var(--bg2);border:1px solid var(--rim);border-radius:6px;padding:5px 10px;color:var(--t1);font-size:11px;outline:none">
+      <select id="radarType" onchange="rOverview()" style="background:var(--bg2);border:1px solid var(--rim);border-radius:6px;padding:5px 8px;color:var(--t2);font-size:11px">
+        <option value="">All Types</option>
+        <option>Buyer</option><option>Seller</option><option>Landlord</option><option>Investor</option><option>Tenant</option>
+      </select>
+      <select id="radarStage" onchange="rOverview()" style="background:var(--bg2);border:1px solid var(--rim);border-radius:6px;padding:5px 8px;color:var(--t2);font-size:11px">
+        <option value="">All Stages</option>
+        <option>Lead</option><option>Qualified</option><option>Viewing Done</option><option>Offer Made</option><option>Under Offer</option><option>Closed</option>
+      </select>
+      <select id="radarFlag" onchange="rOverview()" style="background:var(--bg2);border:1px solid var(--rim);border-radius:6px;padding:5px 8px;color:var(--t2);font-size:11px">
+        <option value="">All Flags</option>
+        <option value="hot">🔥 Hot</option>
+        <option value="due">⚠ Due</option>
+        <option value="cold">❄ Cold</option>
+      </select>
+    </div>
     <div class="tbl-wrap" style="padding:0 1px"><table class="tbl"><thead><tr><th>Contact</th><th>Type</th><th>Stage</th><th>Last</th><th>Flag</th><th>Value</th><th></th></tr></thead><tbody id="cb"></tbody></table></div>
   </div>
   <div class="card">
@@ -3709,9 +3726,10 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
   <div class="card">
     <div class="card-hd">
       <span class="card-title">Campaign Contacts</span>
-      <div style="display:flex;gap:5px">
+      <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
         <select class="crm-ipt" id="campFilterComm" style="font-size:9px;padding:3px 7px;width:auto" onchange="campRenderContacts()"><option value="">All Comms</option></select>
-        <select class="crm-ipt" id="campFilterType" style="font-size:9px;padding:3px 7px;width:auto" onchange="campRenderContacts()"><option value="">All Types</option><option>Seller</option><option>Buyer</option><option>Investor</option></select>
+        <select class="crm-ipt" id="campFilterType" style="font-size:9px;padding:3px 7px;width:auto" onchange="campRenderContacts()"><option value="">All Types</option><option>Seller</option><option>Buyer</option><option>Investor</option><option>Landlord</option><option>Tenant</option></select>
+        <button class="btn-ghost2 btn-sm2" onclick="campBatchFromView()" style="color:var(--grn);border-color:rgba(61,184,122,.3);white-space:nowrap">💬 Send Batch</button>
       </div>
     </div>
     <div style="padding:8px 12px 6px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--rim)">
@@ -4014,6 +4032,15 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
 </div>
 
 
+<!-- ═══ GENERIC MODAL ═══ -->
+<div id="genericModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9100;align-items:center;justify-content:center;backdrop-filter:blur(8px)"
+     onclick="if(event.target===this)closeModal()">
+  <div id="genericModalInner" style="background:#1A1D24;border:1px solid rgba(201,168,76,.25);border-radius:16px;width:min(480px,95vw);max-height:88vh;overflow-y:auto;position:relative">
+    <button onclick="closeModal()" style="position:absolute;top:10px;right:12px;background:transparent;border:none;color:var(--t3);font-size:18px;cursor:pointer;z-index:1">✕</button>
+    <div id="genericModalBody"></div>
+  </div>
+</div>
+
 <!-- ═══ CONTACT DETAIL MODAL ═══ -->
 <div id="campContactModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;align-items:center;justify-content:center;backdrop-filter:blur(6px)"
      onclick="if(event.target===this)campCloseModal()">
@@ -4282,7 +4309,22 @@ function rOverview(){
   var mtc=document.getElementById('mtc');
   if(mtc){mtc.textContent=slow?'📉 Boost needed':'📈 Strong day';mtc.className='chip '+(slow?'chip-red':'chip-grn');}
   var _rc=document.getElementById('rc');if(_rc)_rc.textContent=u+' urgent · '+D.contacts.filter(c=>c.days>=7&&c.days<14).length+' follow-up';
-  var sorted=[...D.contacts].sort(function(a,b){return b.days-a.days;});
+  // ── Radar filters ──
+  var _rQ   = ((document.getElementById('radarSearch')||{}).value||'').toLowerCase().trim();
+  var _rTyp = (document.getElementById('radarType')||{}).value||'';
+  var _rStg = (document.getElementById('radarStage')||{}).value||'';
+  var _rFlg = (document.getElementById('radarFlag')||{}).value||'';
+  var _filt = D.contacts.filter(function(c){
+    if(_rTyp && c.type!==_rTyp) return false;
+    if(_rStg && c.stage!==_rStg) return false;
+    if(_rFlg){var lb=flag(c).lb;
+      if(_rFlg==='hot'  && lb.indexOf('HOT')<0  && lb.indexOf('ACTIVE')<0) return false;
+      if(_rFlg==='due'  && lb.indexOf('FOLLOW')<0 && lb.indexOf('URGENT')<0) return false;
+      if(_rFlg==='cold' && lb.indexOf('COOL')<0) return false;}
+    if(_rQ){ var hay=((c.name||'')+(c.phone||'')+(c.community||'')).toLowerCase(); if(hay.indexOf(_rQ)<0) return false; }
+    return true;
+  });
+  var sorted=_filt.slice().sort(function(a,b){return b.days-a.days;});
   var _cb=document.getElementById('cb');if(_cb)_cb.innerHTML=sorted.map(function(c,si){
     var f=flag(c),oi=D.contacts.indexOf(c);
     var radarWaPhone = (c.phone||'').replace(/[^0-9]/g,'');
@@ -4293,7 +4335,7 @@ function rOverview(){
       +'<td><span class="editable" data-ds="contacts" data-idx="'+oi+'" data-field="days" data-type="number" style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+(c.days||0)+'d</span></td>'
       +'<td><span class="chip '+f.cl+'" style="margin:0">'+f.lb+'</span></td>'
       +'<td><span class="editable" data-ds="contacts" data-idx="'+oi+'" data-field="value" data-type="number" style="font-family:var(--mono);font-size:10px;color:var(--gold)">'+fmt(c.value)+'</span></td>'
-      +'<td style="white-space:nowrap;"><button class="ab" onclick="markC('+si+')">✓</button> <button class="del-btn" data-ds="contacts" data-idx="'+oi+'" title="Delete">✕</button></td>'
+      +'<td style="white-space:nowrap;"><button class="ab" onclick="markC('+oi+',true)">✓</button> <button class="del-btn" data-ds="contacts" data-idx="'+oi+'" title="Delete">✕</button></td>'
     +'</tr>';
   }).join('')
   + '<tr class="quick-add-row">'
@@ -4305,8 +4347,42 @@ function rOverview(){
     +'<td><input class="qa-input" id="qa-cval" type="number" placeholder="Value AED" style="width:90px"/></td>'
     +'<td><button class="ab" onclick="quickAddContact()" style="background:var(--em-bg);color:var(--em);border-color:rgba(45,212,160,.3);">+ Add</button></td>'
   +'</tr>';
-  let fs2=[{n:'Enquiries',c:cvr.tot,p:100,col:'var(--sa)'},{n:'Viewings Done',c:cvr.v,p:cvr.cv,col:'var(--am)'},{n:'Offers Made',c:cvr.o,p:cvr.vo,col:'var(--em)'}];
-  document.getElementById('fw').innerHTML=fs2.map((s,i)=>`<div class="fns"><div class="fnn">${s.n}</div><div class="fnt"><div class="fnf" style="width:${s.p}%;background:${s.col}20;border-left:2px solid ${s.col}"><span class="fnfl" style="color:${s.col}">${s.c}</span></div></div><div class="fnp" style="color:${s.col}">${s.p}%</div></div>${i===0?`<div class="fna">↓ ${cvr.cv}% call→view</div>`:i===1?`<div class="fna">↓ ${cvr.vo}% view→offer</div>`:''}`).join('');
+  var _all=(D.contacts||[]).concat(D.pipeline||[]);
+  var _closed=_all.filter(function(c){return c.stage==='Closed';}).length;
+  var _closeRate=cvr.o?Math.round(_closed/Math.max(cvr.o,1)*100):0;
+  var _tp=D.pipeline.reduce(function(s,d){return s+d.value;},0);
+  var _ppCt=Math.max(D.pipeline.length,1);
+  var _avgDeal=Math.round(_tp/_ppCt);
+  var _fStages=[
+    {n:'Total Contacts',  emoji:'👥', cnt:cvr.tot, w:100,                             col:'var(--sa)',   rate:null,            aed:null},
+    {n:'Viewings Done',   emoji:'🏠', cnt:cvr.v,   w:Math.max(cvr.v?12:0,cvr.cv),    col:'var(--am)',   rate:cvr.cv+'%',      aed:cvr.v?'AED '+fs(cvr.v*Math.round(_avgDeal*.02)):null},
+    {n:'Offers Made',     emoji:'📝', cnt:cvr.o,   w:Math.max(cvr.o?8:0,Math.round(cvr.cv*cvr.vo/100)),col:'var(--gold)', rate:cvr.vo+'%', aed:cvr.o?'AED '+fs(cvr.o*Math.round(_avgDeal*.05)):null},
+    {n:'Closed / Won',    emoji:'🏆', cnt:_closed, w:Math.max(_closed?6:0,_closeRate),col:'var(--em)',   rate:_closeRate+'%',  aed:_closed?'AED '+fs(_closed*Math.round(_avgDeal*.02)):null}
+  ];
+  document.getElementById('fw').innerHTML='<div style="padding:14px 16px 10px">'
+    +_fStages.map(function(s,i){
+      var bw=Math.max(s.cnt>0?14:0, s.w);
+      return '<div style="margin-bottom:2px">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">'
+          +'<span style="font-size:10px;font-weight:600;color:'+s.col+'">'+s.emoji+' '+s.n+'</span>'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+            +(s.aed?'<span style="font-family:var(--mono);font-size:9px;color:var(--t4)">~'+s.aed+'</span>':'')
+            +'<span style="font-family:var(--mono);font-size:11px;font-weight:700;color:'+s.col+'">'+s.cnt+'</span>'
+          +'</div>'
+        +'</div>'
+        +'<div style="background:rgba(255,255,255,.04);border-radius:3px;height:22px;overflow:hidden;position:relative">'
+          +'<div style="height:100%;width:'+bw+'%;background:'+s.col+'22;border-left:3px solid '+s.col+';border-radius:0 2px 2px 0;transition:width .5s ease;display:flex;align-items:center;padding-left:8px">'
+            +'<span style="font-size:9px;color:'+s.col+';opacity:.8">'+bw+'%</span>'
+          +'</div>'
+        +'</div>'
+        +(i<_fStages.length-1&&s.rate?'<div style="text-align:center;font-size:9px;color:var(--t4);line-height:1.8">↓ '+s.rate+' conversion</div>':'')
+      +'</div>';
+    }).join('')
+  +'<div style="margin-top:10px;padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:6px;display:flex;justify-content:space-between">'
+    +'<span style="font-size:9px;color:var(--t3)">Pipeline avg deal</span>'
+    +'<span style="font-family:var(--mono);font-size:10px;color:var(--gold);font-weight:700">AED '+fs(_avgDeal)+'</span>'
+  +'</div>'
++'</div>';
   document.getElementById('ag').innerHTML=g90.map(l=>`<div class="ag ${l==='slow'?'ags':'ag'+l}"></div>`).join('');
 }
 
@@ -4444,7 +4520,12 @@ function rForecast(){
 
 // ACTIONS
 function togH(i){habits[i].done=!habits[i].done;rDiscipline();rOverview();}
-function markC(i){let s=[...D.contacts].sort((a,b)=>b.days-a.days),c=s[i],o=D.contacts.findIndex(x=>x===c);if(o>=0){D.contacts[o].days=0;ac.followups++;}renderAll();}
+function markC(i,direct){
+  var o;
+  if(direct){o=i;}
+  else{var s=[...D.contacts].sort((a,b)=>b.days-a.days),c=s[i];o=D.contacts.findIndex(x=>x===c);}
+  if(o>=0){D.contacts[o].days=0;ac.followups++;}renderAll();
+}
 function logAct(){
   let n=document.getElementById('in').value.trim();if(!n)return;
   let a=document.getElementById('ia').value;
@@ -7448,6 +7529,12 @@ function campConfirmImport(){
   }
   campRenderContacts();
   campEnsureDefaultFlows();
+  // Sync to all other pages that display contacts
+  setTimeout(function(){
+    if(typeof rOverview==='function') rOverview();
+    if(typeof crmRenderContacts==='function') crmRenderContacts();
+    if(typeof rPipeline==='function') rPipeline();
+  }, 200);
   toast('✓ '+selected.length+' contacts imported!'+(dedup&&selected.length<(campPreviewData||[]).length?' ('+( (campPreviewData||[]).length-selected.length)+' duplicates skipped)':''));
 }
 
@@ -7514,9 +7601,8 @@ function campRenderContacts(){
   body.querySelectorAll('.camp-act-cell').forEach(function(cell){
     var cid = cell.getAttribute('data-cid');
     var c = campDB.find(function(x){ return x.id===cid; });
-    if(c) cell.parentNode.replaceChild ? cell.appendChild(campContactBtns(c).childNodes[0])||cell.replaceWith(campContactBtns(c)) : null;
     if(c){ var btd=campContactBtns(c); while(btd.firstChild) cell.appendChild(btd.firstChild); }
-  });;
+  });
 
   // Pagination controls
   var pgEl = document.getElementById('campPagination');
@@ -7589,6 +7675,21 @@ async function campRunAll(){
   campRenderContacts();
 }
 
+// -- BATCH FROM CURRENT VIEW --
+function campBatchFromView(){
+  var comm = (document.getElementById('campFilterComm')||{}).value||'';
+  var type = (document.getElementById('campFilterType')||{}).value||'';
+  var q    = ((document.getElementById('campSearchQ')||{}).value||'').toLowerCase().trim();
+  var list = campDB.filter(function(c){
+    if(comm && (c.community||'').toLowerCase().indexOf(comm.toLowerCase())<0) return false;
+    if(type && c.type!==type) return false;
+    if(q && ((c.name||'')+(c.phone||'')+(c.community||'')).toLowerCase().indexOf(q)<0) return false;
+    return !!(c.phone||'').replace(/[^0-9]/g,'');
+  });
+  if(!list.length){ toast('No contacts with phone numbers in current view', true); return; }
+  campOpenBatchModal(list);
+}
+
 // -- DEFAULT FLOWS --
 function campEnsureDefaultFlows(){
   if(typeof campDB==='undefined'||!campDB) return;
@@ -7607,17 +7708,54 @@ function campEnsureDefaultFlows(){
 function campRenderFlows(){
   var el = document.getElementById('campFlowsContainer');
   if(!el) return;
-  el.innerHTML = campFlows.map(function(f){
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rim);font-size:12px">'
-      +'<div style="display:flex;align-items:center;gap:10px">'
-      +'<div style="width:8px;height:8px;border-radius:50%;background:'+(f.active?'var(--grn)':'var(--t4)')+';flex-shrink:0"></div>'
-      +'<div><div style="font-weight:500">'+f.name+'</div>'
-      +'<div style="font-size:10px;color:var(--t3)">Trigger: '+f.trigger+' · Delay: '+f.delay+'d · Tone: '+f.tone+'</div></div></div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<span style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+f.sent+' sent</span>'
-      +'<button class="ab" onclick="campToggleFlow(\''+f.id+'\')" style="font-size:9px;padding:3px 8px">'+(f.active?'Pause':'Resume')+'</button>'
-      +'</div></div>';
-  }).join('');
+  var TRIGGER_LABELS = {new_contact:'🆕 New contact',no_reply:'🔕 No reply',no_reply_3d:'🔕 3d no reply',no_reply_7d:'🔕 7d no reply',monthly:'📅 Monthly',new_listing:'🏠 New listing',manual:'✋ Manual'};
+  el.innerHTML = '<div style="padding:4px 0">'
+    + campFlows.map(function(f){
+      var trig = TRIGGER_LABELS[f.trigger] || f.trigger;
+      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--rim);font-size:12px">'
+        +'<div style="display:flex;align-items:center;gap:10px">'
+          +'<div style="width:8px;height:8px;border-radius:50%;background:'+(f.active?'var(--grn)':'var(--t4)')+';flex-shrink:0"></div>'
+          +'<div><div style="font-weight:500">'+campEsc(f.name)+'</div>'
+          +'<div style="font-size:10px;color:var(--t3)">'+trig+' · Delay: '+f.delay+'d · Tone: '+campEsc(f.tone)+'</div></div>'
+        +'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px">'
+          +'<span style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+f.sent+' sent</span>'
+          +'<button class="btn-ghost2 btn-sm2" onclick="campRunFlowBatch(\''+f.id+'\')" style="color:var(--grn);border-color:rgba(61,184,122,.3)">▶ Run</button>'
+          +'<button class="ab" onclick="campToggleFlow(\''+f.id+'\')" style="font-size:9px;padding:3px 8px">'+(f.active?'Pause':'Resume')+'</button>'
+        +'</div>'
+      +'</div>';
+    }).join('')
+  +'</div>'
+  // Batch log
+  +(campBatchLog&&campBatchLog.length?
+    '<div style="padding:10px 14px;background:rgba(255,255,255,.02);border-top:1px solid var(--rim)">'
+      +'<div style="font-size:10px;font-weight:600;color:var(--t3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em">Recent Batches</div>'
+      +campBatchLog.slice(0,5).map(function(b){
+        return '<div style="display:flex;align-items:center;justify-content:space-between;font-size:10px;color:var(--t3);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+          +'<span style="color:var(--t2)">'+campEsc(b.label)+'</span>'
+          +'<span style="font-family:var(--mono)">'+b.sent+'/'+b.count+' sent</span>'
+        +'</div>';
+      }).join('')
+    +'</div>'
+  : '');
+}
+
+function campRunFlowBatch(flowId){
+  var f = campFlows.find(function(x){return x.id===flowId;});
+  if(!f){ toast('Flow not found', true); return; }
+  // Determine matching contacts based on trigger
+  var contacts = [];
+  if(f.trigger==='new_contact'){
+    contacts = campDB.filter(function(c){ return !c.sent || parseInt(c.sent||0)===0; });
+  } else if(f.trigger==='no_reply'||f.trigger==='no_reply_3d'){
+    contacts = campDB.filter(function(c){ return parseInt(c.sent||0)>0 && parseInt(c.last||0)>=3; });
+  } else if(f.trigger==='no_reply_7d'){
+    contacts = campDB.filter(function(c){ return parseInt(c.sent||0)>0 && parseInt(c.last||0)>=7; });
+  } else {
+    contacts = campDB.slice(); // all
+  }
+  if(!contacts.length){ toast('No matching contacts for this flow', true); return; }
+  campOpenBatchModal(contacts);
 }
 
 function campToggleFlow(id){
@@ -10412,12 +10550,29 @@ function campImportAsList(){
 //  SMART WA MESSAGE TEMPLATES — Personalised for contact type
 // ================================================================
 
-function campBuildWAMessage(c) {
+// ── WA message template IDs ──────────────────────────────────
+// 'neutral'  = Initial neutral contact (soft intro, no pitch)
+// 'initial'  = Standard initial outreach (type-specific)
+// 'followup' = Follow-up after no reply
+// 'value'    = Value/market update
+var WA_ACTIVE_TEMPLATE = localStorage.getItem('eb_waTpl') || 'neutral';
+function campSetWATpl(t){ WA_ACTIVE_TEMPLATE=t; localStorage.setItem('eb_waTpl',t); toast('Template set: '+t); }
+
+function campBuildWAMessage(c, tplOverride) {
+  var tpl = tplOverride || WA_ACTIVE_TEMPLATE || 'neutral';
   var firstName = (c.name||'').split(' ')[0] || c.name || '';
-  var loc       = contactLocation(c);
-  var community = c.community || '';
+  var community = (c.community||'').replace(/\s*-\s*\d+\s*$/, '').trim() || 'your community';
   var beds      = c.bedrooms  || '';
   var type      = (c.type||'').toLowerCase();
+  var loc       = contactLocation ? contactLocation(c) : community;
+
+  // ── NEUTRAL INITIAL (non-pushy) ──────────────────────────────
+  if(tpl === 'neutral'){
+    return 'Hi '+firstName+', I hope you\'re doing well!\n\n'
+      + 'This is Nellie from The Urban Nest. I\'m very active in '+community+' at the moment and just wanted to reach out and connect.\n\n'
+      + 'No rush at all — just wanted to say hello and let you know I\'m here if you ever need any advice or information about the area. 😊\n\n'
+      + 'Have a wonderful day!';
+  }
   
   // Parse location parts for specific detail
   var streetVilla = '';
@@ -10473,6 +10628,79 @@ function campBuildWAMessage(c) {
     + '\n\nWould you be available for a quick chat? 😊';
 }
 
+// ── WA Batch Send with community + datetime label ────────────
+var campBatchLog = (function(){ try{ return JSON.parse(localStorage.getItem('eb_batchLog')||'[]')||[]; }catch(e){return[];} })();
+function campSaveBatchLog(){ localStorage.setItem('eb_batchLog', JSON.stringify(campBatchLog)); }
+
+function campRunBatch(contacts, opts){
+  opts = opts || {};
+  var tpl        = opts.tpl    || WA_ACTIVE_TEMPLATE || 'neutral';
+  var flowName   = opts.flow   || 'Manual Batch';
+  var now        = new Date();
+  var dateStr    = now.toLocaleDateString('en-AE',{day:'2-digit',month:'short',year:'numeric'});
+  var timeStr    = now.toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'});
+  var batchList  = (contacts||[]).filter(function(c){ return (c.phone||'').replace(/[^0-9]/g,''); });
+  if(!batchList.length){ toast('No contacts with phone numbers', true); return; }
+
+  // Build batch label
+  var comms    = [...new Set(batchList.map(function(c){ return (c.community||'').replace(/\s*-\s*\d+\s*$/,'').trim(); }).filter(Boolean))];
+  var commLabel= comms.slice(0,3).join(', ') || 'Mixed';
+  var batchLabel = commLabel+' · '+dateStr+' '+timeStr;
+
+  // Log batch
+  campBatchLog.unshift({ id:'b'+Date.now(), label:batchLabel, flow:flowName, tpl:tpl, count:batchList.length, sent:0, ts:now.toISOString() });
+  if(campBatchLog.length>50) campBatchLog.length=50;
+  campSaveBatchLog();
+
+  // Open WA links sequentially (user taps each)
+  var i=0;
+  function sendNext(){
+    if(i>=batchList.length){ toast('✓ Batch complete: '+batchList.length+' contacts opened · Label: '+batchLabel); campSaveBatchLog(); return; }
+    var c=batchList[i++];
+    var phone=(c.phone||'').replace(/[^0-9]/g,'');
+    if(!phone){sendNext();return;}
+    var msg=campBuildWAMessage(c, tpl);
+    c.lastBatch=batchLabel; c.lastMsg=msg; c.sent=(parseInt(c.sent)||0)+1; c.last='0d';
+    campBatchLog[0].sent=i;
+    window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank');
+    campSave();
+    if(i<batchList.length){
+      toast(i+'/'+batchList.length+' — next opens in 3s…');
+      setTimeout(sendNext, 3000);
+    } else { sendNext(); }
+  }
+
+  toast('🚀 Batch: '+batchList.length+' contacts · '+batchLabel);
+  sendNext();
+}
+
+// Show batch modal with template picker
+function campOpenBatchModal(contacts){
+  var comm = contacts&&contacts.length?(contacts[0].community||'this community').replace(/\s*-\s*\d+\s*$/,'').trim():'contacts';
+  var html = '<div style="padding:20px;max-width:420px">'
+    +'<div style="font-size:16px;font-weight:700;margin-bottom:12px">🚀 Send Batch — '+contacts.length+' contacts</div>'
+    +'<div style="font-size:11px;color:var(--t3);margin-bottom:14px">Community: <strong style="color:var(--gold)">'+comm+'</strong></div>'
+    +'<div style="margin-bottom:12px">'
+      +'<div style="font-size:10px;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">Message Template</div>'
+      +'<div id="batchTplPills" style="display:flex;flex-wrap:wrap;gap:6px">'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='neutral'?'on':'')+'" onclick="campSetWATpl(\'neutral\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">😊 Initial Neutral</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='initial'?'on':'')+'" onclick="campSetWATpl(\'initial\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">📢 Initial Outreach</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='followup'?'on':'')+'" onclick="campSetWATpl(\'followup\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">🔁 Follow-up</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='value'?'on':'')+'" onclick="campSetWATpl(\'value\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">💹 Market Update</div>'
+      +'</div>'
+    +'</div>'
+    +'<div id="batchTplPreview" style="background:rgba(255,255,255,.04);border:1px solid var(--rim);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--t2);white-space:pre-wrap;max-height:120px;overflow-y:auto;margin-bottom:14px">'
+      +campEsc(campBuildWAMessage(contacts[0]||{name:'[Name]',community:comm},WA_ACTIVE_TEMPLATE))
+    +'</div>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end">'
+      +'<button class="btn-ghost2" onclick="closeModal()">Cancel</button>'
+      +'<button class="btn-gold2" onclick="closeModal();campRunBatch(_batchContacts,{tpl:WA_ACTIVE_TEMPLATE})">🚀 Start Batch</button>'
+    +'</div>'
+  +'</div>';
+  window._batchContacts = contacts;
+  openModal(html);
+}
+
 // Override campSendOne to use the smart template
 var _origCampSendOneMsg = typeof campSendOne === 'function' ? campSendOne : null;
 campSendOne = function(id){
@@ -10507,6 +10735,19 @@ document.addEventListener('click', function(e){
     : 'Hi ' + (btn.getAttribute('data-name')||'');
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
 });
+
+// ── Generic modal helpers ─────────────────────────────────────
+function openModal(html){
+  var bg = document.getElementById('genericModal');
+  var body = document.getElementById('genericModalBody');
+  if(!bg||!body) return;
+  body.innerHTML = html;
+  bg.style.display = 'flex';
+}
+function closeModal(){
+  var bg = document.getElementById('genericModal');
+  if(bg) bg.style.display = 'none';
+}
 
 </script>
 
