@@ -7558,7 +7558,7 @@ async function campGenMsg(id){
   var msg = await campCallAI(prompt, 200);
   if(msg){
     var ci = campDB.findIndex(function(x){return x.id===id;});
-    if(ci>=0){ campDB[ci].waMsg = msg; campSave(); gsPost({ action:'upsert', sheet:'Campaigns', row:campDB[ci], idField:'id' }); }
+    if(ci>=0){ campDB[ci].waMsg = msg; campSave(); gsPost({ action:'upsert', sheet:'Master Contacts', row:campDB[ci], idField:'id' }); }
     toast('✓ Message generated for '+c.name);
   }
 }
@@ -8335,7 +8335,7 @@ async function gsCampaignSaveToSheet(){
   try {
     // Step 1: clear the Campaigns sheet first (clean replace)
     if(status) status.textContent = 'Clearing existing sheet data…';
-    var clearResult = await gsPost({ action:'clear', sheet:'Campaigns' });
+    var clearResult = await gsPost({ action:'clear', sheet:'Master Contacts' });
     if(clearResult === null) throw new Error('No response from Apps Script — check deployment settings');
     if(clearResult && clearResult.ok === false) throw new Error(clearResult.error || 'Clear failed');
 
@@ -8347,7 +8347,7 @@ async function gsCampaignSaveToSheet(){
       if(status) status.textContent='Writing batch '+(i+1)+'/'+batches+' · '+Math.min((i+1)*CHUNK,total)+'/'+total+' contacts…';
       if(btn) btn.textContent='⏳ '+pct+'%';
 
-      var result = await gsPost({ action:'batchUpsert', sheet:'Campaigns', rows:chunk, idField:'id' });
+      var result = await gsPost({ action:'batchUpsert', sheet:'Master Contacts', rows:chunk, idField:'id' });
 
       if(result === null) throw new Error('No response on batch '+(i+1)+' — connection dropped');
       if(result && result.ok === false) throw new Error(result.error || 'Batch '+(i+1)+' failed');
@@ -8415,7 +8415,7 @@ async function campLoadFromSheet(){
   var btn = document.querySelector('[onclick="campLoadFromSheet()"]');
   if(btn){ btn.textContent = '⏳ Loading…'; btn.disabled = true; }
   try {
-    var result = await gsPost({ action: 'get', sheet: 'Campaigns' });
+    var result = await gsPost({ action: 'get', sheet: 'Master Contacts' });
     if(!result || !result.rows || !result.rows.length){
       toast('No contacts found in Google Sheet Campaigns tab', true);
       if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
@@ -8511,7 +8511,7 @@ function campAddManualSave(){
   campUpdateStats();
 
   // Sync to Google Sheet immediately
-  gsPost({ action:'upsert', sheet:'Campaigns', row:contact, idField:'id' });
+  gsPost({ action:'upsert', sheet:'Master Contacts', row:contact, idField:'id' });
 
   document.getElementById('campManualModal').style.display = 'none';
   // Clear fields for next add
@@ -9227,7 +9227,7 @@ function campSendOne(id) {
     c.lastSentDate = new Date().toDateString();
     c.followUps = (c.followUps || 0) + 1;
     campSave();
-    gsPost({ action:'upsert', sheet:'Campaigns', row:c, idField:'id' });
+    gsPost({ action:'upsert', sheet:'Master Contacts', row:c, idField:'id' });
     campRenderContacts();
     toast(status === 'Delivered' ? '✓ Delivered to '+phone : '⚠ Not delivered');
   });
@@ -10186,7 +10186,7 @@ function campSaveModal(){
   });
   if(_campModalSrc === 'campDB'){
     var c = campDB.find(function(x){ return x.id===_campModalId; });
-    if(c){ Object.assign(c, updates); campSave(); campRenderContacts(); gsWriteContact(c); gsPost({ action:'upsert', sheet:'Campaigns', row:c, idField:'id' }); }
+    if(c){ Object.assign(c, updates); campSave(); campRenderContacts(); gsWriteContact(c); gsPost({ action:'upsert', sheet:'Master Contacts', row:c, idField:'id' }); }
   } else if(_campModalSrc === 'preview'){
     var cp = (campPreviewData||[])[_campPreviewIdx];
     if(cp){ Object.assign(cp, updates); }
