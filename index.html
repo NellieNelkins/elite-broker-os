@@ -10551,7 +10551,8 @@ function campImportAsList(){
 // ================================================================
 
 // ── WA message template IDs ──────────────────────────────────
-// 'neutral'  = Initial neutral contact (soft intro, no pitch)
+// 'neutral'  = Initial neutral contact
+// 'vacant'   = Property available soon / going vacant
 // 'initial'  = Standard initial outreach (type-specific)
 // 'followup' = Follow-up after no reply
 // 'value'    = Value/market update
@@ -10565,13 +10566,22 @@ function campBuildWAMessage(c, tplOverride) {
   var beds      = c.bedrooms  || '';
   var type      = (c.type||'').toLowerCase();
   var loc       = contactLocation ? contactLocation(c) : community;
+  var fullAddr  = (loc && loc !== '—' && loc !== community) ? loc : '';
 
-  // ── NEUTRAL INITIAL (non-pushy) ──────────────────────────────
+  // ── NEUTRAL INITIAL CONTACT ───────────────────────────────────
   if(tpl === 'neutral'){
-    return 'Hi '+firstName+', I hope you\'re doing well!\n\n'
-      + 'This is Nellie from The Urban Nest. I\'m very active in '+community+' at the moment and just wanted to reach out and connect.\n\n'
-      + 'No rush at all — just wanted to say hello and let you know I\'m here if you ever need any advice or information about the area. 😊\n\n'
-      + 'Have a wonderful day!';
+    var addrPart = fullAddr ? ' ('+fullAddr+')' : '';
+    return 'Hi '+firstName+', hope you\'re doing well. This is Nellie from The Urban Nest.\n\n'
+      + 'I specialize in '+community+', and I\'ve been working closely with owners in your area.\n\n'
+      + 'I just wanted to check—are you planning to sell or rent out your villa'+addrPart+' this season, or are you considering holding onto it?';
+  }
+
+  // ── PROPERTY AVAILABLE SOON / GOING VACANT ───────────────────
+  if(tpl === 'vacant'){
+    var propAddr = fullAddr ? fullAddr : (beds ? 'your '+(beds.includes('BR')?beds:beds+'BR')+' villa in '+community : 'your property in '+community);
+    return 'Hi '+firstName+', hope you\'re doing well. This is Nellie Karren from Urban Nest, specializing in '+community+'.\n\n'
+      + 'I understand your property at '+propAddr+' will be vacant this month. Properties in '+community+' have been getting good interest recently, so I\'d like to help position it correctly and start arranging viewings.\n\n'
+      + 'Would mornings or evenings suit you better this week?';
   }
   
   // Parse location parts for specific detail
@@ -10683,10 +10693,11 @@ function campOpenBatchModal(contacts){
     +'<div style="margin-bottom:12px">'
       +'<div style="font-size:10px;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">Message Template</div>'
       +'<div id="batchTplPills" style="display:flex;flex-wrap:wrap;gap:6px">'
-        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='neutral'?'on':'')+'" onclick="campSetWATpl(\'neutral\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">😊 Initial Neutral</div>'
-        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='initial'?'on':'')+'" onclick="campSetWATpl(\'initial\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">📢 Initial Outreach</div>'
-        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='followup'?'on':'')+'" onclick="campSetWATpl(\'followup\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">🔁 Follow-up</div>'
-        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='value'?'on':'')+'" onclick="campSetWATpl(\'value\');document.querySelectorAll(\'#batchTplPills .crm-fpill\').forEach(function(p){p.classList.remove(\'on\')});this.classList.add(\'on\')">💹 Market Update</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='neutral'?'on':'')+'" onclick="campSetWATpl(\'neutral\');_batchRefreshPreview(this)">😊 Initial Neutral</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='vacant'?'on':'')+'"  onclick="campSetWATpl(\'vacant\');_batchRefreshPreview(this)">🏠 Available Soon</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='initial'?'on':'')+'" onclick="campSetWATpl(\'initial\');_batchRefreshPreview(this)">📢 Initial Outreach</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='followup'?'on':'')+'" onclick="campSetWATpl(\'followup\');_batchRefreshPreview(this)">🔁 Follow-up</div>'
+        +'<div class="crm-fpill '+(WA_ACTIVE_TEMPLATE==='value'?'on':'')+'"   onclick="campSetWATpl(\'value\');_batchRefreshPreview(this)">💹 Market Update</div>'
       +'</div>'
     +'</div>'
     +'<div id="batchTplPreview" style="background:rgba(255,255,255,.04);border:1px solid var(--rim);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--t2);white-space:pre-wrap;max-height:120px;overflow-y:auto;margin-bottom:14px">'
@@ -10735,6 +10746,19 @@ document.addEventListener('click', function(e){
     : 'Hi ' + (btn.getAttribute('data-name')||'');
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank');
 });
+
+// Updates the message preview in the batch modal when template changes
+function _batchRefreshPreview(pill){
+  // Deselect all pills, select this one
+  var pills = document.querySelectorAll('#batchTplPills .crm-fpill');
+  pills.forEach(function(p){ p.classList.remove('on'); });
+  if(pill) pill.classList.add('on');
+  // Update preview text
+  var prev = document.getElementById('batchTplPreview');
+  if(prev && window._batchContacts && window._batchContacts.length){
+    prev.textContent = campBuildWAMessage(window._batchContacts[0], WA_ACTIVE_TEMPLATE);
+  }
+}
 
 // ── Generic modal helpers ─────────────────────────────────────
 function openModal(html){
