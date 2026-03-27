@@ -3569,6 +3569,7 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
 <div class="sec-hd">
   <div><div class="sec-title">WA <em>Campaigns</em></div><div class="sec-sub">Import contacts · auto follow-up flows · smart sequencing</div></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+    <button class="btn btn-gold" onclick="campAddManual()" style="padding:6px 14px">➕ Add Contact</button>
     <button class="btn" onclick="campImportXlsx()">📊 Import</button>
     <button class="btn" onclick="campDLDTemplate()" style="background:var(--card2);border-color:var(--border)" title="Download DLD-format Excel template">📋 DLD Template</button>
     <button class="btn" onclick="campExportXlsx()" style="background:var(--card2);border-color:var(--border)">⬇ Export</button>
@@ -7549,8 +7550,7 @@ async function campGenMsg(id){
   var msg = await campCallAI(prompt, 200);
   if(msg){
     var ci = campDB.findIndex(function(x){return x.id===id;});
-    if(ci>=0) campDB[ci].waMsg = msg;
-    campSave();
+    if(ci>=0){ campDB[ci].waMsg = msg; campSave(); gsPost({ action:'upsert', sheet:'Campaigns', row:campDB[ci], idField:'id' }); }
     toast('✓ Message generated for '+c.name);
   }
 }
@@ -8434,6 +8434,85 @@ async function campLoadFromSheet(){
   if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
 }
 
+// -- CAMPAIGN: ADD CONTACT MANUALLY --
+function campAddManual(){
+  // Build a quick-add modal inline
+  var existing = document.getElementById('campManualModal');
+  if(existing){ existing.style.display='flex'; return; }
+
+  var modal = document.createElement('div');
+  modal.id = 'campManualModal';
+  modal.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;padding:16px';
+  modal.innerHTML = [
+    '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;width:100%;max-width:480px;padding:20px;position:relative">',
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">',
+    '  <div style="font-family:var(--display);font-size:15px;font-weight:600">Add <em style="color:var(--gold);font-style:normal">Campaign Contact</em></div>',
+    '  <button onclick="document.getElementById(\'campManualModal\').style.display=\'none\'" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1">×</button>',
+    '</div>',
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Name *</label>',
+    '    <input id="camAdd-name" class="crm-ipt" placeholder="Full name" style="width:100%"></div>',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Phone *</label>',
+    '    <input id="camAdd-phone" class="crm-ipt" placeholder="971501234567" style="width:100%"></div>',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Community</label>',
+    '    <input id="camAdd-community" class="crm-ipt" placeholder="The Springs" style="width:100%"></div>',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Type</label>',
+    '    <select id="camAdd-type" class="crm-ipt" style="width:100%"><option>Seller</option><option>Buyer</option><option>Investor</option><option>Landlord</option><option>Tenant</option></select></div>',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Stage</label>',
+    '    <select id="camAdd-stage" class="crm-ipt" style="width:100%"><option>New</option><option>Lead</option><option>Contacted</option><option>Hot</option><option>Warm</option><option>Cold</option><option>Closed</option></select></div>',
+    '  <div><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Bedrooms</label>',
+    '    <input id="camAdd-bedrooms" class="crm-ipt" placeholder="3" style="width:100%"></div>',
+    '  <div style="grid-column:span 2"><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Full Address / Unit</label>',
+    '    <input id="camAdd-address" class="crm-ipt" placeholder="Villa 12, Springs 3" style="width:100%"></div>',
+    '  <div style="grid-column:span 2"><label style="font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);display:block;margin-bottom:3px">Notes</label>',
+    '    <input id="camAdd-notes" class="crm-ipt" placeholder="Optional notes" style="width:100%"></div>',
+    '</div>',
+    '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px">',
+    '  <button onclick="document.getElementById(\'campManualModal\').style.display=\'none\'" class="btn-ghost2" style="padding:7px 16px;font-size:11px">Cancel</button>',
+    '  <button onclick="campAddManualSave()" class="btn btn-gold" style="padding:7px 18px;font-size:11px">➕ Add Contact</button>',
+    '</div></div>'
+  ].join('');
+  document.body.appendChild(modal);
+}
+
+function campAddManualSave(){
+  var name = (document.getElementById('camAdd-name')||{}).value||'';
+  var phone = (document.getElementById('camAdd-phone')||{}).value||'';
+  if(!name.trim()){ toast('Name is required', true); return; }
+
+  var contact = {
+    id:        'camp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+    name:      name.trim(),
+    phone:     phone.replace(/[^0-9+]/g,''),
+    community: (document.getElementById('camAdd-community')||{}).value||'',
+    type:      (document.getElementById('camAdd-type')||{}).value||'Seller',
+    stage:     (document.getElementById('camAdd-stage')||{}).value||'New',
+    bedrooms:  (document.getElementById('camAdd-bedrooms')||{}).value||'',
+    fullAddress:(document.getElementById('camAdd-address')||{}).value||'',
+    notes:     (document.getElementById('camAdd-notes')||{}).value||'',
+    source:    'Manual',
+    sent:      false,
+    followUps: 0,
+    replied:   false,
+    addedAt:   new Date().toISOString()
+  };
+
+  campDB.unshift(contact);
+  campSave();
+  campRenderContacts();
+  campUpdateStats();
+
+  // Sync to Google Sheet immediately
+  gsPost({ action:'upsert', sheet:'Campaigns', row:contact, idField:'id' });
+
+  document.getElementById('campManualModal').style.display = 'none';
+  // Clear fields for next add
+  ['camAdd-name','camAdd-phone','camAdd-community','camAdd-bedrooms','camAdd-address','camAdd-notes'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value = '';
+  });
+  toast('✓ '+contact.name+' added to Campaigns and synced to Sheet');
+}
+
 // -- CAMPAIGN: EXPORT CONTACTS TO EXCEL --
 function campExportXlsx(){
   if(!campDB || !campDB.length){ toast('No contacts to export', true); return; }
@@ -9135,6 +9214,12 @@ function campSendOne(id) {
   if (!msg) { toast('Generate a message first', true); return; }
   c._lastMsg = msg;
   waDeliverToSeller(c, msg, function(phone, status){
+    // Update sent status locally + sync to GS
+    c.sent = true;
+    c.lastSentDate = new Date().toDateString();
+    c.followUps = (c.followUps || 0) + 1;
+    campSave();
+    gsPost({ action:'upsert', sheet:'Campaigns', row:c, idField:'id' });
     campRenderContacts();
     toast(status === 'Delivered' ? '✓ Delivered to '+phone : '⚠ Not delivered');
   });
