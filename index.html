@@ -8223,13 +8223,16 @@ async function gsGet(params) {
 
 async function gsPost(body) {
   var WORKER = 'https://workerjs.karkarren02.workers.dev';
+  // Always inject the target spreadsheet ID so Apps Script knows where to write
+  var SPREADSHEET_ID = '1OjnUrjNqs8_j73aTOAT8Qy67k0E0oJPJ';
+  body = Object.assign({ spreadsheetId: SPREADSHEET_ID }, body);
   // Try worker /gs proxy first
   try {
     var res = await fetch(WORKER + '/gs', {
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(body),
-      signal:AbortSignal.timeout(10000)
+      signal:AbortSignal.timeout(30000)
     });
     if(res.ok){
       var txt = await res.text();
@@ -8245,7 +8248,7 @@ async function gsPost(body) {
         redirect:'follow',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
         body:JSON.stringify(body),
-        signal:AbortSignal.timeout(10000)
+        signal:AbortSignal.timeout(30000)
       });
       if(res2.ok){
         var txt2 = await res2.text();
@@ -8263,7 +8266,7 @@ async function gsPost(body) {
       method:'POST', redirect:'follow',
       headers:{'Content-Type':'text/plain'},
       body:JSON.stringify(body),
-      signal:AbortSignal.timeout(12000)
+      signal:AbortSignal.timeout(30000)
     });
     var txt3 = await res3.text();
     if(txt3 && txt3.trim()[0]==='{') return JSON.parse(txt3.trim());
@@ -8310,9 +8313,9 @@ async function gsCampaignSaveToSheet(){
   var status = document.getElementById('campGsStatus');
   if(!campDB || !campDB.length){ toast('No contacts to save', true); return; }
 
-  // 150 rows × ~300 bytes ≈ 45KB per chunk — safely under Worker's 128KB limit
-  // Worker proxy is required to avoid CORS (browser blocks direct calls to script.google.com)
-  var CHUNK = 150;
+  // 50 rows per chunk — fast per-batch execution, under Worker 128KB limit
+  // Worker proxy required to avoid CORS (browser blocks direct calls to script.google.com)
+  var CHUNK = 50;
   var total = campDB.length;
   var batches = Math.ceil(total / CHUNK);
 
