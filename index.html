@@ -3570,7 +3570,9 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
   <div><div class="sec-title">WA <em>Campaigns</em></div><div class="sec-sub">Import contacts · auto follow-up flows · smart sequencing</div></div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
     <button class="btn" onclick="campImportXlsx()">📊 Import</button>
+    <button class="btn" onclick="campDLDTemplate()" style="background:var(--card2);border-color:var(--border)" title="Download DLD-format Excel template">📋 DLD Template</button>
     <button class="btn" onclick="campExportXlsx()" style="background:var(--card2);border-color:var(--border)">⬇ Export</button>
+    <button class="btn" onclick="campLoadFromSheet()" style="background:var(--card2);border-color:rgba(74,158,232,.3);color:var(--blue)" title="Pull contacts from Google Sheet into campaign DB">📥 Load from Sheet</button>
     <button class="btn" onclick="gsCampaignSaveToSheet()" id="campGsBtn" style="background:var(--card2);border-color:rgba(61,184,122,.3);color:var(--grn)">☁ Save to Sheet</button>
     <button class="btn btn-gold" onclick="campRunAll()">⚡ Run Campaign</button>
   </div>
@@ -3644,10 +3646,10 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
         <div>• Duplicates (same phone number) are skipped</div>
         <div>• Master stays clean — no double entries</div>
         <div style="font-weight:600;color:var(--gold);margin-top:10px;margin-bottom:6px">Step 4 — Sync to Google Sheets</div>
-        <div>• Click <strong style="color:var(--t1)">☁ Sync All Now</strong></div>
-        <div>• All contacts written to your Google Sheet</div>
-        <div>• Auto-syncs every 5 minutes thereafter</div>
-        <div>• Your master file is always current</div>
+        <div>• Click <strong style="color:var(--grn)">☁ Save to Sheet</strong> in the header</div>
+        <div>• All contacts written to Campaigns tab live</div>
+        <div>• Edits &amp; deletes sync instantly to the sheet</div>
+        <div>• Click <strong style="color:var(--blue)">📥 Load from Sheet</strong> to restore from cloud</div>
       </div>
     </div>
     <div style="margin-top:12px;padding:10px 14px;background:rgba(37,211,102,.05);border:1px solid rgba(37,211,102,.15);border-radius:8px;font-size:10px;color:var(--t2)">
@@ -7169,40 +7171,41 @@ var appointDB   = (function(){ try{ return JSON.parse(localStorage.getItem('eb_a
 var agentHistory= {};   // agentId → [{role,content}]
 var campPreviewData = [];
 
-// -- COLUMN MAP for Springs-format files --
+// -- COLUMN MAP for Springs-format + DLD export files --
 var COLUMN_MAP = {
-  name:        ['NAME','name','Full Name','OWNER NAME','OWNER','Contact Name'],
-  phone:       ['CLEANED NUMBERS','Phone 1 (Primary WA','Phone 1','PHONE','MOBILE','SECONDARY MOBILE','phone','mobile','Phone','Mobile','Contact'],
-  phone2:      ['Phone 2','PHONE 2','SECONDARY MOBILE','MOBILE 2','phone2','Alt Phone','Phone2'],
-  phone3:      ['Phone 3','PHONE 3','MOBILE 3','phone3','Alt Phone 2','Phone3'],
-  email:       ['EMAIL','email','Email','E-MAIL'],
-  type:        ['Contact Type','TYPE','Type','Contact Type\n(Seller/Landlord/Buyer/Investor/Tenant/End-User)','CATEGORY'],
-  community:   ['MASTER PROJECT','Master Project','COMMUNITY','community','Community','Project','AREA','Preferred Communities','DEVELOPMENT','Development'],
-  subComm:     ['Sub-Community','SUB COMMUNITY','sub_community','Sub Community','SUB_COMMUNITY','Project Sub','PHASE','Phase'],
-  property:    ['ADDRESS','address','Full Address','Unit / Villa No.','Property Address','PROPERTY','VILLA NO','UNIT','UNIT NO','Street','STREET','Villa'],
-  bedrooms:    ['BEDROOMS','beds','Bedrooms','BED','bed_count','Preferred Beds','Bedrooms','Bedroom'],
-  bathrooms:   ['BATHROOMS','baths','Bathrooms','BATH'],
-  propType:    ['Property Type','PROPERTY TYPE','prop_type','Type'],
-  fullAddress: ['location','LOCATION','Location','FULL ADDRESS','Full Address Property','FULL LOCATION'],
-  plotNum:     ['Plot No.','plot_number','Plot No','PLOT NO'],
-  dldNum:      ['DLD Title Deed No.','DLD','Title Deed','TITLE DEED','DLD No'],
-  permitNum:   ['P-Number / Permit No.','P-Number','Permit No.','PERMIT','P_NUMBER','P-NO'],
-  area:        ['ACTUAL AREA','Area (sqft)','area','AREA OWNED','BUA','sqft'],
-  askingPrice: ['Asking Price / Rent (AED)','Asking Price','ASKING PRICE','PRICE','Price','AED'],
-  marketVal:   ['Market Value (AED)','Market Value','MARKET VALUE'],
+  name:        ['NAME','name','Full Name','OWNER NAME','OWNER','Contact Name','OWNER_NAME','Owner Name','REGISTRANT_NAME','Registrant'],
+  phone:       ['CLEANED NUMBERS','Phone 1 (Primary WA','Phone 1','PHONE','MOBILE','SECONDARY MOBILE','phone','mobile','Phone','Mobile','Contact','MOBILE_NO','MOBILE_NUMBER','PHONE_NO','TEL','TELEPHONE'],
+  phone2:      ['Phone 2','PHONE 2','SECONDARY MOBILE','MOBILE 2','phone2','Alt Phone','Phone2','MOBILE_2','ALT_MOBILE'],
+  phone3:      ['Phone 3','PHONE 3','MOBILE 3','phone3','Alt Phone 2','Phone3','MOBILE_3'],
+  email:       ['EMAIL','email','Email','E-MAIL','EMAIL_ADDRESS','Email Address'],
+  type:        ['Contact Type','TYPE','Type','Contact Type\n(Seller/Landlord/Buyer/Investor/Tenant/End-User)','CATEGORY','OWNER_TYPE'],
+  community:   ['MASTER PROJECT','Master Project','COMMUNITY','community','Community','Project','AREA','Preferred Communities','DEVELOPMENT','Development','COMMUNITY_NAME','MASTER_COMMUNITY','MASTER_PROJECT','PROJECT_NAME','BUILDING_NAME'],
+  subComm:     ['Sub-Community','SUB COMMUNITY','sub_community','Sub Community','SUB_COMMUNITY','Project Sub','PHASE','Phase','SUB_COMMUNITY_NAME'],
+  property:    ['ADDRESS','address','Full Address','Unit / Villa No.','Property Address','PROPERTY','VILLA NO','UNIT','UNIT NO','Street','STREET','Villa','UNIT_NO','VILLA_NO','PROPERTY_ADDRESS','FLAT_NO'],
+  bedrooms:    ['BEDROOMS','beds','Bedrooms','BED','bed_count','Preferred Beds','Bedrooms','Bedroom','NO_OF_BEDROOMS','BEDS','BEDROOM_COUNT'],
+  bathrooms:   ['BATHROOMS','baths','Bathrooms','BATH','NO_OF_BATHROOMS'],
+  propType:    ['Property Type','PROPERTY TYPE','prop_type','Type','PROPERTY_TYPE','PROPERTY_USAGE','USAGE_TYPE'],
+  fullAddress: ['location','LOCATION','Location','FULL ADDRESS','Full Address Property','FULL LOCATION','FULL_ADDRESS'],
+  plotNum:     ['Plot No.','plot_number','Plot No','PLOT NO','PLOT_NO','PLOT_NUMBER','LAND_NUMBER'],
+  dldNum:      ['DLD Title Deed No.','DLD','Title Deed','TITLE DEED','DLD No','TITLE_DEED_NO','DEED_NO','TRANSACTION_NUMBER','TRANS_NO'],
+  permitNum:   ['P-Number / Permit No.','P-Number','Permit No.','PERMIT','P_NUMBER','P-NO','PERMIT_NO','RERA_NO'],
+  area:        ['ACTUAL AREA','Area (sqft)','area','AREA OWNED','BUA','sqft','ACTUAL_AREA','AREA_SQFT','PLOT_AREA','BUILDING_AREA'],
+  askingPrice: ['Asking Price / Rent (AED)','Asking Price','ASKING PRICE','PRICE','Price','AED','TRANS_VALUE','TRANSACTION_VALUE','SALE_VALUE','PRICE_AED'],
+  marketVal:   ['Market Value (AED)','Market Value','MARKET VALUE','MARKET_VALUE','VALUATION'],
   budgetMin:   ['Budget Min (AED)','Budget Min','BUDGET MIN','budget_min'],
   budgetMax:   ['Budget Max (AED)','Budget Max','BUDGET MAX','budget_max','Monthly Budget (AED)'],
   roiTarget:   ['ROI Target (%)','ROI','roi_target','ROI Target'],
   goldenVisa:  ['Golden Visa?','Golden Visa','GOLDEN VISA','golden_visa'],
   motivation:  ['Motivation / Reason','Motivation','MOTIVATION','reason'],
-  vacancy:     ['Vacancy Status','VACANCY','vacancy','Vacant?'],
-  nationality: ['Nationality','NATIONALITY','national'],
+  vacancy:     ['Vacancy Status','VACANCY','vacancy','Vacant?','VACANCY_STATUS'],
+  nationality: ['Nationality','NATIONALITY','national','NATIONALITY_NAME','OWNER_NATIONALITY'],
   source:      ['Source','SOURCE','source','Lead Source'],
-  notes:       ['Agent Notes','Notes','NOTES','notes','Comment'],
+  notes:       ['Agent Notes','Notes','NOTES','notes','Comment','REMARKS','PROPERTY_NOTES'],
   stage:       ['Stage','STAGE','stage','Status','STATUS'],
   moveIn:      ['Move-in / Need By Date','Move-in Date','MOVE IN','move_in'],
   urgency:     ['Urgency (Hot/Warm/Cool)','Urgency','URGENCY','Priority'],
-  message:     ['MSG WA ','MSG WA','wa_message','message','WA Message']
+  message:     ['MSG WA ','MSG WA','wa_message','message','WA Message'],
+  regDate:     ['REG_DATE','REGISTRATION_DATE','Transaction Date','TRANS_DATE','Date','DATE']
 };
 
 function campSave(){
@@ -8308,6 +8311,65 @@ async function gsCampaignSaveToSheet(){
     if(status){ status.textContent = '✗ Sync failed — check Google Sheet connection'; status.style.color = 'var(--red)'; }
     toast('Sync failed — check connection settings', true);
   }
+}
+
+// -- CAMPAIGN: DOWNLOAD DLD-COMPATIBLE TEMPLATE --
+function campDLDTemplate(){
+  var template = [{
+    NAME: 'Mohammed Al Rashidi',
+    MOBILE_NO: '971501234567',
+    EMAIL: 'example@email.com',
+    COMMUNITY_NAME: 'The Springs',
+    SUB_COMMUNITY_NAME: 'Springs 3',
+    UNIT_NO: 'Villa 12',
+    NO_OF_BEDROOMS: '3',
+    PROPERTY_TYPE: 'Villa',
+    PLOT_NO: 'P-1234',
+    TITLE_DEED_NO: 'TD-56789',
+    ACTUAL_AREA: '2400',
+    TRANS_VALUE: '3200000',
+    NATIONALITY_NAME: 'Emirati',
+    VACANCY_STATUS: 'Vacant',
+    REMARKS: 'Interested in selling',
+    REG_DATE: '2026-01-15'
+  }];
+  var ws = XLSX.utils.json_to_sheet(template);
+  var wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'DLD Export');
+  XLSX.writeFile(wb, 'DLD_import_template.xlsx');
+  toast('✓ DLD template downloaded — fill and import back');
+}
+
+// -- CAMPAIGN: LOAD CONTACTS FROM GOOGLE SHEET --
+async function campLoadFromSheet(){
+  var btn = document.querySelector('[onclick="campLoadFromSheet()"]');
+  if(btn){ btn.textContent = '⏳ Loading…'; btn.disabled = true; }
+  try {
+    var result = await gsGet({ action: 'read', sheet: 'Campaigns' });
+    if(!result || !result.rows || !result.rows.length){
+      toast('No contacts found in Google Sheet Campaigns tab', true);
+      if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
+      return;
+    }
+    var incoming = result.rows;
+    var added = 0, updated = 0;
+    incoming.forEach(function(row){
+      if(!row.id) row.id = 'camp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+      var existing = campDB.findIndex(function(c){ return c.id === row.id; });
+      if(existing >= 0){ Object.assign(campDB[existing], row); updated++; }
+      else { campDB.push(row); added++; }
+    });
+    campSave();
+    campRenderContacts();
+    campUpdateStats();
+    var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'});
+    var statusEl = document.getElementById('campGsStatus');
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.color='var(--blue)'; statusEl.textContent = '📥 Loaded from Sheet: '+added+' added, '+updated+' updated · '+ts; }
+    toast('✓ Loaded from Sheet: '+added+' new, '+updated+' updated');
+  } catch(e) {
+    toast('Failed to load from Sheet — check connection', true);
+  }
+  if(btn){ btn.textContent = '📥 Load from Sheet'; btn.disabled = false; }
 }
 
 // -- CAMPAIGN: EXPORT CONTACTS TO EXCEL --
@@ -9712,11 +9774,17 @@ function gsWriteBatch(contacts){
 var _origCampConfirmGS = campConfirmImport;
 campConfirmImport = function(){
   _origCampConfirmGS();
-  // After import, sync all new contacts to GS
+  // After import, auto-sync full Campaigns sheet
   setTimeout(function(){
-    var toSync = campDB.slice(-500); // last imported batch
-    if(toSync.length) gsWriteBatch(toSync);
-  }, 500);
+    var statusEl = document.getElementById('campGsStatus');
+    if(statusEl){ statusEl.style.display='block'; statusEl.style.color='var(--muted)'; statusEl.textContent = '⏳ Auto-syncing imported contacts to Google Sheet…'; }
+    gsBulkWrite('Campaigns', campDB, 'replace').then(function(){
+      var ts = new Date().toLocaleTimeString('en-AE',{hour:'2-digit',minute:'2-digit'});
+      if(statusEl){ statusEl.style.color='var(--grn)'; statusEl.textContent = '✓ '+campDB.length+' contacts synced to Sheet after import · '+ts; }
+    }).catch(function(){
+      if(statusEl){ statusEl.style.color='var(--muted)'; statusEl.textContent = 'Sheet sync skipped (not connected)'; }
+    });
+  }, 800);
 };
 
 // ── Patch crmSave to write WA contacts to GS ─────────────────────
