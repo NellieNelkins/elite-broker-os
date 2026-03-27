@@ -3591,6 +3591,7 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
     <button class="btn" onclick="campDLDTemplate()" style="background:var(--card2);border-color:var(--border)" title="Download DLD-format Excel template">📋 DLD Template</button>
     <button class="btn" onclick="campExportXlsx()" style="background:var(--card2);border-color:var(--border)">⬇ Export</button>
     <button class="btn" onclick="campLoadFromSheet()" style="background:var(--card2);border-color:rgba(74,158,232,.3);color:var(--blue)" title="Pull contacts from Google Sheet into campaign DB">📥 Load from Sheet</button>
+    <button class="btn" onclick="var n=campSyncFromCRM();campUpdateStats();campRenderContacts();toast('✓ Synced '+(n||0)+' new contacts');" style="background:var(--card2);border-color:rgba(201,168,76,.3);color:var(--gold)" title="Sync contacts from WA CRM and Master into Campaigns">🔄 Sync Contacts</button>
     <button class="btn" onclick="gsCampaignSaveToSheet()" id="campGsBtn" style="background:var(--card2);border-color:rgba(61,184,122,.3);color:var(--grn)">☁ Save to Sheet</button>
     <button class="btn btn-gold" onclick="campRunAll()">⚡ Run Campaign</button>
   </div>
@@ -3922,7 +3923,8 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
           <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchComm" checked style="accent-color:var(--gold)"> Match by community</label>
           <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchBeds" checked style="accent-color:var(--gold)"> Match bedroom count</label>
           <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchBuyers" checked style="accent-color:var(--gold)"> All Buyers/Investors</label>
-          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchOwners" style="accent-color:var(--gold)"> Community owners</label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchOwners" checked style="accent-color:var(--gold)"> Sellers &amp; Landlords</label>
+          <label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--t1);cursor:pointer"><input type="checkbox" id="blastMatchAll" style="accent-color:var(--gold)"> All contacts (ignore type)</label>
         </div>
         <button class="btn-ghost2" style="width:100%" onclick="blastMatchContacts()">🔍 Find Contacts</button>
         <div id="blastMatchList" style="max-height:120px;overflow-y:auto;border:1px solid var(--rim);border-radius:8px;margin-top:8px"></div>
@@ -4696,11 +4698,21 @@ function renderPage(name){
   else if(name==='forecast')   rForecast();
   else if(name==='market')     { if(typeof initMarket==='function') initMarket(); }
   else if(name==='coach')      { _coachInitDone=false; if(typeof initCoach==='function') initCoach(); }
-  else if(name==='whatsapp')   { if(typeof crmInitWA==='function') crmInitWA(); setTimeout(function(){ if(localStorage.getItem('wa_conn')==='1'&&typeof waSetConnected==='function') waSetConnected(true,localStorage.getItem('wa_conn_text')||'WhatsApp Web — Connected ✓'); },150); }
+  else if(name==='whatsapp')   {
+    if(typeof crmInitWA==='function') crmInitWA();
+    // Sync master contacts → crmC whenever WA page opens
+    if(typeof crmSyncFromMaster==='function') setTimeout(crmSyncFromMaster, 200);
+    setTimeout(function(){ if(localStorage.getItem('wa_conn')==='1'&&typeof waSetConnected==='function') waSetConnected(true,localStorage.getItem('wa_conn_text')||'WhatsApp Web — Connected ✓'); },150);
+  }
   else if(name==='briefing')   { _briefingInitDone=false; if(typeof initBriefing==='function') initBriefing(); }
   else if(name==='calculator') { if(typeof calcUpdate==='function') calcUpdate(); if(typeof renderCalcHistory==='function') renderCalcHistory(); }
   else if(name==='contacts-add'){ /* static form */ }
-  else if(name==='campaigns') { campRenderSmartLists(); campUpdateStats(); if(typeof campUpdateStats==='function'){ campUpdateStats(); campRenderContacts(); campEnsureDefaultFlows(); campRenderFlows(); } }
+  else if(name==='campaigns') {
+    // Auto-sync: pull from all sources into campDB before rendering
+    if(typeof campSyncFromCRM==='function') campSyncFromCRM();
+    campRenderSmartLists(); campUpdateStats();
+    if(typeof campUpdateStats==='function'){ campUpdateStats(); campRenderContacts(); campEnsureDefaultFlows(); campRenderFlows(); }
+  }
   else if(name==='newsletter') { if(typeof newsRenderStats==='function'){ newsRenderStats(); newsRenderHistory(); newsUpdateCount(); } }
   else if(name==='listings-blast'){ if(typeof blastRenderHistory==='function') blastRenderHistory(); }
   else if(name==='agents')     { if(typeof agentInit==='function'){ agentInit(); agentRenderAppointments(); } }
@@ -7675,6 +7687,44 @@ async function campRunAll(){
   campRenderContacts();
 }
 
+// ── campSyncFromCRM: merge crmC + D.contacts into campDB ─────
+// Called every time Campaigns page opens so the list is always up to date
+function campSyncFromCRM(){
+  var added = 0;
+  var existing = new Set((campDB||[]).map(function(c){ return String(c.phone||'').replace(/[^0-9]/g,''); }));
+  // Helper to add a contact
+  function maybeAdd(c, src){
+    var p = String(c.phone||'').replace(/[^0-9]/g,'');
+    if(!p || existing.has(p)) return;
+    existing.add(p);
+    campDB.push({
+      id:        c.id || ('syn_'+Date.now()+'_'+Math.random().toString(36).substr(2,5)),
+      name:      c.name||'',
+      phone:     p,
+      email:     c.email||'',
+      type:      c.type||'Contact',
+      stage:     c.stage||'Lead',
+      community: c.community||'',
+      bedrooms:  c.bedrooms||'',
+      property:  c.property||c.notes||'',
+      notes:     c.notes||'',
+      source:    c.source||src||'Sync',
+      addedAt:   c.addedAt||new Date().toISOString(),
+      sent:0, last:0
+    });
+    added++;
+  }
+  // From WA CRM contacts
+  (typeof crmC!=='undefined' ? crmC : []).forEach(function(c){ maybeAdd(c,'CRM'); });
+  // From master contacts
+  ((typeof D!=='undefined'&&D.contacts)||[]).forEach(function(c){ maybeAdd(c,'Master'); });
+  if(added>0){
+    campSave();
+    toast('✓ Synced '+added+' contacts into Campaigns');
+  }
+  return added;
+}
+
 // -- BATCH FROM CURRENT VIEW --
 function campBatchFromView(){
   var comm = (document.getElementById('campFilterComm')||{}).value||'';
@@ -7938,43 +7988,72 @@ function newsRenderHistory(){
 //  LISTINGS BLAST
 // --------------------------------------------------------
 function blastMatchContacts(){
-  var comm = ((document.getElementById('blastComm')||{}).value||'').trim().toLowerCase();
-  var beds = ((document.getElementById('blastBeds')||{}).value||'').replace('BR','').trim();
-  var mComm   = (document.getElementById('blastMatchComm')||{}).checked !== false;
-  var mBeds   = (document.getElementById('blastMatchBeds')||{}).checked !== false;
-  var mBuyers = (document.getElementById('blastMatchBuyers')||{}).checked !== false;
-  var mOwners = (document.getElementById('blastMatchOwners')||{}).checked;
-  // Collect from ALL sources
+  var comm    = ((document.getElementById('blastComm')||{}).value||'').trim().toLowerCase();
+  var beds    = ((document.getElementById('blastBeds')||{}).value||'').replace('BR','').trim();
+  var mComm   = !!(document.getElementById('blastMatchComm')||{}).checked;
+  var mBeds   = !!(document.getElementById('blastMatchBeds')||{}).checked;
+  var mBuyers = !!(document.getElementById('blastMatchBuyers')||{}).checked;
+  var mOwners = !!(document.getElementById('blastMatchOwners')||{}).checked;
+  var mAll    = !!(document.getElementById('blastMatchAll')||{}).checked;
+
+  // Collect from ALL sources — dedup by phone
   var seen = new Set(); var all = [];
-  function add(c){ var k=String(c.phone||c.name||''); if(k&&!seen.has(k)){seen.add(k);all.push(c);} }
-  (campDB||[]).forEach(add); (crmC||[]).forEach(add); (D.contacts||[]).forEach(function(c){add(c);});
+  function addC(c){ var k=String(c.phone||'').replace(/[^0-9]/g,''); if(k&&!seen.has(k)){seen.add(k);all.push(c);} }
+  (campDB||[]).forEach(addC);
+  (typeof crmC!=='undefined'?crmC:[]).forEach(addC);
+  ((typeof D!=='undefined'&&D.contacts)||[]).forEach(addC);
+
   var matched = all.filter(function(c){
-    var cc=(c.community||c.notes||c.property||'').toLowerCase();
-    var cb=String(c.bedrooms||c.beds||'').replace('BR','').trim();
-    var ct=(c.type||'').toLowerCase();
-    var ok=false;
-    if(mBuyers&&(ct==='buyer'||ct==='investor')) ok=true;
-    if(mComm&&comm&&cc.includes(comm)) ok=true;
-    if(mOwners&&(ct==='seller'||ct==='landlord')&&cc.includes(comm)) ok=true;
-    if(!mComm&&!mBuyers&&!mOwners) ok=true;
-    if(mBeds&&beds&&cb&&cb!==beds) ok=false;
+    var cc  = (c.community||c.notes||c.property||'').toLowerCase();
+    var cb  = String(c.bedrooms||c.beds||'').replace(/BR/i,'').trim();
+    var ct  = (c.type||'').toLowerCase();
+    var ok  = false;
+
+    if(mAll) { ok = true; }                                    // All contacts
+    if(mBuyers && (ct==='buyer'||ct==='investor')) ok = true;  // Buyers & Investors
+    if(mOwners && (ct==='seller'||ct==='landlord')) ok = true; // Sellers & Landlords (no comm needed)
+    if(mComm   && comm && cc.includes(comm)) ok = true;        // Any type in matching community
+
+    // If no type filter active — show all
+    if(!mAll && !mBuyers && !mOwners && !mComm) ok = true;
+
+    // Community filter: if comm entered AND mComm checked, restrict to that community
+    if(mComm && comm && !cc.includes(comm)) ok = false;
+
+    // Beds filter: only exclude if contact has an explicit non-matching value
+    if(mBeds && beds && cb && cb !== beds) ok = false;
+
     return ok;
   });
+
   var cnt=document.getElementById('blastTargetCount');
   if(cnt) cnt.textContent=matched.length+' matched';
+
   var listEl=document.getElementById('blastMatchList');
   if(listEl){
-    listEl.innerHTML=matched.length?matched.slice(0,80).map(function(c,i){
-      return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--rim);font-size:11px">'
-        +'<div style="display:flex;align-items:center;gap:8px"><input type="checkbox" class="blast-sel" data-idx="'+i+'" data-phone="'+(c.phone||'')+'" checked style="accent-color:var(--gold)">'
-        +'<div><div style="font-weight:500">'+(c.name||'—')+'</div>'
-        +'<div style="font-size:10px;color:var(--t3)">'+(c.type||'Contact')+' · '+(c.community||'')+'</div></div></div>'
-        +'<span style="font-family:var(--mono);font-size:10px;color:var(--wa)">'+(c.phone||'—')+'</span></div>';
-    }).join('')+'<div style="padding:8px 12px;font-size:10px;color:var(--t3)">'+(matched.length>80?'…and '+(matched.length-80)+' more':'')+'</div>'
-    :'<div style="padding:14px;text-align:center;font-size:11px;color:var(--t3)">No matches — try unchecking filters or import contacts in Campaigns tab</div>';
+    if(!matched.length){
+      listEl.innerHTML='<div style="padding:14px;text-align:center;font-size:11px;color:var(--t3)">No matches found — check filters above or ensure contacts are synced</div>';
+    } else {
+      var typeColor={'buyer':'var(--sa)','investor':'var(--gold)','seller':'var(--am)','landlord':'var(--vi)','tenant':'var(--blue)'};
+      listEl.innerHTML = matched.slice(0,80).map(function(c,i){
+        var ct=(c.type||'Contact').toLowerCase();
+        var col=typeColor[ct]||'var(--t3)';
+        return '<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 12px;border-bottom:1px solid var(--rim);font-size:11px">'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+          +'<input type="checkbox" class="blast-sel" data-idx="'+i+'" data-phone="'+(c.phone||'')+'" checked style="accent-color:var(--gold)">'
+          +'<div><div style="font-weight:500">'+(c.name||'—')+'</div>'
+          +'<div style="font-size:10px;margin-top:1px">'
+            +'<span style="color:'+col+'">'+campEsc(c.type||'Contact')+'</span>'
+            +(c.community?' <span style="color:var(--t4)">· '+campEsc(c.community)+'</span>':'')
+          +'</div></div></div>'
+          +'<span style="font-family:var(--mono);font-size:10px;color:var(--grn)">'+(c.phone||'—')+'</span>'
+        +'</div>';
+      }).join('')
+      +(matched.length>80?'<div style="padding:8px 12px;font-size:10px;color:var(--t3)">…and '+(matched.length-80)+' more</div>':'');
+    }
   }
   window._blastMatched=matched;
-  toast('✓ '+matched.length+' contacts matched');
+  toast('✓ '+matched.length+' contacts matched for blast');
 }
 
 async function blastGenMsg(){
