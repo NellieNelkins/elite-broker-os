@@ -1,0 +1,182 @@
+@import "tailwindcss";
+
+/* ===== Elite Broker OS Design Tokens ===== */
+:root {
+  /* Gold palette */
+  --gold-50: #fdf8e8;
+  --gold-100: #f5ecc4;
+  --gold-200: #e8d48a;
+  --gold-300: #e8c97b;
+  --gold-400: #d4af37;
+  --gold-500: #c9a84c;
+  --gold-600: #8a6e30;
+  --gold-700: #6b5625;
+  --gold-800: #4d3e1b;
+  --gold-900: #2e2510;
+
+  /* Dark backgrounds */
+  --bg-deepest: #0b0c0f;
+  --bg-deep: #111318;
+  --bg-base: #161920;
+  --bg-surface: #1c1f28;
+  --bg-elevated: #232730;
+  --bg-hover: #2a2e3a;
+  --bg-active: #333844;
+
+  /* Text */
+  --text-primary: #f0ece4;
+  --text-secondary: #a09888;
+  --text-muted: #6b6358;
+  --text-gold: #e8c97b;
+
+  /* Borders */
+  --border-default: #2a2520;
+  --border-subtle: #1f1c18;
+  --border-gold: rgba(201, 168, 76, 0.3);
+
+  /* Status colors */
+  --green: #3db87a;
+  --green-muted: rgba(61, 184, 122, 0.15);
+  --red: #e85d3d;
+  --red-muted: rgba(232, 93, 61, 0.15);
+  --blue: #4a9ee8;
+  --blue-muted: rgba(74, 158, 232, 0.15);
+  --violet: #9b7cf4;
+  --violet-muted: rgba(155, 124, 244, 0.15);
+  --amber: #f59e0b;
+  --amber-muted: rgba(245, 158, 11, 0.15);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-gold: 0 0 20px rgba(201, 168, 76, 0.15);
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+/* ===== Base styles ===== */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background: var(--bg-deepest);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-active);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ===== Typography ===== */
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Outfit", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+code, pre, .mono {
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ===== Utility classes ===== */
+.text-gold {
+  color: var(--text-gold);
+}
+
+.bg-surface {
+  background: var(--bg-surface);
+}
+
+.border-gold {
+  border-color: var(--border-gold);
+}
+
+.glow-gold {
+  box-shadow: var(--shadow-gold);
+}
+
+/* Status badges */
+.badge-green {
+  background: var(--green-muted);
+  color: var(--green);
+}
+.badge-red {
+  background: var(--red-muted);
+  color: var(--red);
+}
+.badge-blue {
+  background: var(--blue-muted);
+  color: var(--blue);
+}
+.badge-violet {
+  background: var(--violet-muted);
+  color: var(--violet);
+}
+.badge-amber {
+  background: var(--amber-muted);
+  color: var(--amber);
+}
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(201, 168, 76, 0); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-slide-in {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--bg-surface) 25%, var(--bg-elevated) 50%, var(--bg-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}

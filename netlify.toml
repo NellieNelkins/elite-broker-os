@@ -1,3 +1,11 @@
 [build]
-  publish = "."
-  command = ""
+  publish = ".next"
+  command = "pnpm exec prisma generate && pnpm build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXTAUTH_SECRET = "placeholder-set-in-netlify-env"
+
+# Next.js requires the @netlify/plugin-nextjs for proper SSR support
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

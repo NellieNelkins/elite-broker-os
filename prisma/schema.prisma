@@ -1,0 +1,222 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ===== Authentication (NextAuth) =====
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  apiKey        String?   // Encrypted Anthropic API key
+  accounts      Account[]
+  sessions      Session[]
+  contacts      Contact[]
+  deals         Deal[]
+  listings      Listing[]
+  campaigns     Campaign[]
+  activities    Activity[]
+  coachSessions CoachSession[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ===== CRM Data Models =====
+
+model Contact {
+  id               String       @id @default(cuid())
+  userId           String
+  name             String
+  phone            String
+  phone2           String?
+  phone3           String?
+  email            String?
+  type             String       @default("Buyer") // Buyer, Seller, Investor, Tenant, Landlord
+  stage            String       @default("Lead")  // Lead, Qualified, Viewing Done, Offer Made, Under Offer, Closed, Lost
+  priority         String       @default("MEDIUM") // HIGH, MEDIUM, LOW
+  value            Float        @default(0)
+  community        String?
+  property         String?
+  bedrooms         String?
+  propType         String?      // Villa, Apartment, Townhouse, Penthouse, Plot
+  permitNum        String?
+  dldNum           String?
+  nationality      String?
+  motivation       String?
+  source           String?      // WhatsApp, DLD Import, Excel, Bayut, etc.
+  notes            String?
+  whatsappConnected Boolean     @default(false)
+  replied          Boolean      @default(false)
+  lastContactedAt  DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deals            Deal[]
+  activities       Activity[]
+  campaignContacts CampaignContact[]
+
+  @@index([userId, stage])
+  @@index([userId, type])
+  @@index([userId, priority])
+  @@index([phone])
+}
+
+model Deal {
+  id          String   @id @default(cuid())
+  userId      String
+  contactId   String?
+  name        String
+  stage       String   @default("Lead")
+  value       Float    @default(0)
+  commission  Float    @default(0)
+  probability Float    @default(0)
+  community   String?
+  property    String?
+  nextAction  String?
+  nextDate    DateTime?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  activities  Activity[]
+
+  @@index([userId, stage])
+}
+
+model Listing {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  type        String   @default("Villa")
+  price       Float    @default(0)
+  address     String?
+  community   String?
+  bedrooms    String?
+  views       Int      @default(0)
+  status      String   @default("Active") // Active, Under Offer, Sold, Draft
+  listedAt    DateTime @default(now())
+  // Listing checklist steps
+  stepDocs    Boolean  @default(false)
+  stepPhotos  Boolean  @default(false)
+  stepPrice   Boolean  @default(false)
+  stepPortal  Boolean  @default(false)
+  stepLive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model Campaign {
+  id          String            @id @default(cuid())
+  userId      String
+  name        String
+  type        String            @default("whatsapp") // whatsapp, email, newsletter, blast
+  status      String            @default("draft")    // draft, in_progress, completed, paused
+  template    String?
+  sentCount   Int               @default(0)
+  replyCount  Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contacts    CampaignContact[]
+
+  @@index([userId, status])
+}
+
+model CampaignContact {
+  id         String   @id @default(cuid())
+  campaignId String
+  contactId  String
+  sent       Boolean  @default(false)
+  replied    Boolean  @default(false)
+  sentAt     DateTime?
+
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, contactId])
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String
+  contactId   String?
+  dealId      String?
+  type        String   // call, viewing, offer, message, note, deal_update
+  description String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+model CoachSession {
+  id             String   @id @default(cuid())
+  userId         String
+  date           DateTime @default(now())
+  habits         Json     @default("[]")
+  challengesDone Json     @default("[]")
+  streak         Int      @default(0)
+  score          Int      @default(0)
+  targetCalls    Int      @default(0)
+  targetViewings Int      @default(0)
+  targetOffers   Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
