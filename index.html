@@ -3680,7 +3680,10 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
     </div>
   </div>
 </div>
-      <div id="campFieldsDetected" style="font-size:10px;color:var(--t3);line-height:1.9">Import a file to see detected columns</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div id="campFieldsDetected" style="font-size:10px;color:var(--t3);line-height:1.9;flex:1">Import a file to see detected columns</div>
+        <button id="campColMapBtn" onclick="campShowColMapper(window._campRawHdrs,window._campRawRows,window._campRawFile)" style="display:none;background:none;border:1px solid rgba(201,168,76,.3);color:var(--gold);font-size:10px;border-radius:6px;padding:4px 10px;cursor:pointer;white-space:nowrap;margin-top:1px" title="Manually assign which spreadsheet column maps to each field">🗂 Map Columns</button>
+      </div>
       <!-- Preview -->
       <div id="campImportPreview" style="display:none;margin-top:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
@@ -4078,6 +4081,33 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
     </div>
   </div>
 </div>
+<!-- ===== COLUMN MAPPER MODAL ===== -->
+<div id="campColMapModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9100;align-items:center;justify-content:center;backdrop-filter:blur(6px)"
+     onclick="if(event.target===this)campCloseColMapper()">
+  <div style="background:#1A1D24;border:1px solid rgba(201,168,76,.25);border-radius:16px;width:min(600px,96vw);max-height:90vh;overflow-y:auto;position:relative">
+    <div style="padding:18px 22px 14px;border-bottom:1px solid var(--rim);position:sticky;top:0;background:#1A1D24;z-index:1;display:flex;align-items:flex-start;justify-content:space-between">
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--t1)">🗂 Map Your Columns</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:3px">Auto-detection couldn't find Name/Phone. Match your file's columns to the fields below.</div>
+        <div id="campColMapFilename" style="font-size:10px;color:var(--gold);margin-top:4px"></div>
+      </div>
+      <button onclick="campCloseColMapper()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;line-height:1;padding:0 4px">×</button>
+    </div>
+    <div style="padding:16px 22px">
+      <!-- Required -->
+      <div style="font-size:10px;font-weight:700;color:var(--am);letter-spacing:.08em;margin-bottom:8px">REQUIRED</div>
+      <div style="display:grid;grid-template-columns:140px 1fr;align-items:center;gap:8px 12px;margin-bottom:14px" id="campColMapRequired"></div>
+      <!-- Optional -->
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;margin-bottom:8px">OPTIONAL</div>
+      <div style="display:grid;grid-template-columns:140px 1fr 140px 1fr;align-items:center;gap:8px 12px" id="campColMapOptional"></div>
+    </div>
+    <div style="padding:12px 22px;border-top:1px solid var(--rim);display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn-ghost2" onclick="campCloseColMapper()" style="font-size:12px;padding:7px 14px">Cancel</button>
+      <button class="btn btn-gold" onclick="campApplyColMap()" style="font-size:12px;padding:7px 16px">✓ Apply &amp; Import</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -9619,6 +9649,11 @@ function campParseFile(file){
         if(data.length > rows.length){ rows = data; bestHdrs = hdrs; }
       }
 
+      // Store raw data for the column mapper
+      window._campRawHdrs = bestHdrs;
+      window._campRawRows = rows;
+      window._campRawFile = file;
+
       if(!rows.length || !bestHdrs.length){
         clearTimeout(_t1); clearTimeout(_t2); hideLoading();
         toast('No contacts found. File needs Name and Phone columns.', true); return;
@@ -9691,7 +9726,12 @@ function campParseFile(file){
 
       if(!(campPreviewData||[]).length){
         clearTimeout(_t1); clearTimeout(_t2); hideLoading();
-        toast('No valid contacts (need Name and Phone)', true); return;
+        if(rows.length > 0){
+          campShowColMapper(bestHdrs, rows, file);
+        } else {
+          toast('No valid contacts (need Name and Phone)', true);
+        }
+        return;
       }
 
       // Stats for fields detected display
@@ -9740,6 +9780,7 @@ function campParseFile(file){
         fd.innerHTML += '<br><span style="color:var(--am)">⚠ Preview shows first 100 of '+(campPreviewData||[]).length+' contacts — ALL will be imported when you confirm</span>';
       }
       toast('✓ '+(campPreviewData||[]).length+' contacts loaded — review and confirm import');
+      var cmb = document.getElementById('campColMapBtn'); if(cmb) cmb.style.display='inline-block';
 
     } catch(err){
       clearTimeout(_t1); clearTimeout(_t2); hideLoading();
@@ -9752,6 +9793,155 @@ function campParseFile(file){
 
 function campHandleDrop(file){ if(file) campParseFile(file); }
 
+// ─── COLUMN MAPPER ────────────────────────────────────────────────────────────
+var _campMapHdrs = [], _campMapRows = [], _campMapFile = null;
+
+function campShowColMapper(hdrs, rows, file){
+  _campMapHdrs = hdrs || [];
+  _campMapRows = rows || [];
+  _campMapFile = file || null;
+
+  var modal = document.getElementById('campColMapModal');
+  if(!modal) return;
+
+  var fn = document.getElementById('campColMapFilename');
+  if(fn) fn.textContent = file ? ('File: ' + file.name + ' · ' + rows.length + ' rows detected') : '';
+
+  // Build <option> list from file headers
+  function makeOpts(selected){
+    var o = '<option value="">— skip —</option>';
+    _campMapHdrs.forEach(function(h,i){
+      var label = String(h||'').trim() || ('Column '+(i+1));
+      o += '<option value="'+i+'"'+(selected===i?' selected':'')+'>'+campEsc(label)+'</option>';
+    });
+    return o;
+  }
+
+  // Try to pre-select best guess for each field using COLUMN_MAP
+  function bestGuess(keys){
+    for(var k=0;k<keys.length;k++){
+      for(var h=0;h<_campMapHdrs.length;h++){
+        var hstr = String(_campMapHdrs[h]||'').toLowerCase().replace(/\s+/g,' ').trim();
+        var key  = keys[k].toLowerCase();
+        if(hstr === key || hstr.startsWith(key.substring(0,10))) return h;
+      }
+    }
+    return -1;
+  }
+
+  var required = [
+    { field:'name',  label:'👤 Name',  keys: COLUMN_MAP.name  },
+    { field:'phone', label:'📱 Phone', keys: COLUMN_MAP.phone  }
+  ];
+  var optional = [
+    { field:'phone2',      label:'📱 Phone 2',      keys: COLUMN_MAP.phone2 },
+    { field:'email',       label:'✉ Email',         keys: COLUMN_MAP.email },
+    { field:'type',        label:'🏷 Type',          keys: COLUMN_MAP.type },
+    { field:'community',   label:'🏘 Community',     keys: COLUMN_MAP.community },
+    { field:'bedrooms',    label:'🛏 Bedrooms',      keys: COLUMN_MAP.bedrooms },
+    { field:'askingPrice', label:'💰 Asking Price',  keys: COLUMN_MAP.askingPrice },
+    { field:'stage',       label:'📊 Stage',         keys: COLUMN_MAP.stage || ['Stage','STATUS'] },
+    { field:'nationality', label:'🌍 Nationality',   keys: COLUMN_MAP.nationality },
+    { field:'motivation',  label:'💬 Motivation',    keys: COLUMN_MAP.motivation },
+    { field:'notes',       label:'📝 Notes',         keys: COLUMN_MAP.notes }
+  ];
+
+  var reqEl = document.getElementById('campColMapRequired');
+  var optEl = document.getElementById('campColMapOptional');
+  if(!reqEl || !optEl) return;
+
+  reqEl.innerHTML = required.map(function(f){
+    var g = bestGuess(f.keys);
+    return '<label style="font-size:11px;font-weight:600;color:var(--t2)">'
+      + f.label + ' <span style="color:var(--am)">*</span></label>'
+      + '<select class="crm-ipt" id="cmap_'+f.field+'" style="font-size:11px;padding:5px 8px">'
+      + makeOpts(g) + '</select>';
+  }).join('');
+
+  optEl.innerHTML = optional.map(function(f){
+    var g = bestGuess(f.keys);
+    return '<label style="font-size:10px;color:var(--t3)">' + f.label + '</label>'
+      + '<select class="crm-ipt" id="cmap_'+f.field+'" style="font-size:10px;padding:4px 7px">'
+      + makeOpts(g) + '</select>';
+  }).join('');
+
+  modal.style.display = 'flex';
+}
+
+function campCloseColMapper(){
+  var m = document.getElementById('campColMapModal');
+  if(m) m.style.display = 'none';
+}
+
+function campApplyColMap(){
+  // Read user's column index selections
+  var fields = ['name','phone','phone2','email','type','community','bedrooms',
+                'askingPrice','stage','nationality','motivation','notes'];
+  var userIdx = {};
+  fields.forEach(function(f){
+    var el = document.getElementById('cmap_'+f);
+    userIdx[f] = el && el.value !== '' ? parseInt(el.value, 10) : -1;
+  });
+
+  if(userIdx.name < 0 || userIdx.phone < 0){
+    toast('Name and Phone columns are required', true); return;
+  }
+
+  campCloseColMapper();
+
+  function v(r, f){ var i = userIdx[f]; return i >= 0 ? String(r[i]||'').trim() : ''; }
+
+  campPreviewData = _campMapRows.map(function(r, ri){
+    var nm = v(r,'name'); if(!nm) return null;
+    var p1 = v(r,'phone').replace(/[^0-9]/g,'');
+    return {
+      id:'c_'+Date.now()+'_'+ri,
+      name:nm, phone:p1,
+      phone2:v(r,'phone2').replace(/[^0-9]/g,''),
+      email:v(r,'email'),
+      type:v(r,'type')||'Seller',
+      community:v(r,'community'),
+      bedrooms:v(r,'bedrooms'),
+      askingPrice:v(r,'askingPrice'),
+      stage:v(r,'stage')||'New',
+      nationality:v(r,'nationality'),
+      motivation:v(r,'motivation'),
+      notes:v(r,'notes'),
+      source:(_campMapFile ? _campMapFile.name : 'Import'),
+      sent:0, followUps:0, replied:false,
+      addedAt:new Date().toISOString()
+    };
+  }).filter(Boolean);
+
+  if(!campPreviewData.length){ toast('No valid rows after mapping — check Name/Phone columns', true); return; }
+
+  // Render preview using the same logic campParseFile uses
+  var prevEl = document.getElementById('campImportPreview');
+  var cntEl  = document.getElementById('campPreviewCount');
+  var tbody  = document.getElementById('campPreviewBody');
+  if(cntEl) cntEl.textContent = campPreviewData.length + ' contacts from: ' + (_campMapFile ? _campMapFile.name : 'file');
+  if(prevEl) prevEl.style.display = 'block';
+  if(tbody){
+    tbody.innerHTML = campPreviewData.slice(0,100).map(function(c,i){
+      var addr = (c.community||c.property||'—').slice(0,30);
+      return '<tr>'
+        +'<td><input type="checkbox" class="camp-sel" data-idx="'+i+'" checked style="accent-color:var(--gold)"></td>'
+        +'<td>'+campEsc(c.name)+'</td>'
+        +'<td style="font-family:var(--mono);font-size:10px">'+(c.phone||'—')+'</td>'
+        +'<td style="font-size:10px;color:var(--muted)">'+campEsc(addr)+'</td>'
+        +'<td style="color:var(--gold)">'+(c.community||'—')+'</td>'
+        +'<td>'+(c.bedrooms||'—')+'</td>'
+        +'<td><select class="camp-type-sel crm-ipt" data-idx="'+i+'" style="font-size:9px;padding:2px 5px">'
+        +['Seller','Landlord','Buyer','Investor','Tenant','End-User'].map(function(t){
+          return '<option'+(c.type===t?' selected':'')+'>'+t+'</option>';
+        }).join('')+'</select></td></tr>';
+    }).join('');
+  }
+  var fd = document.getElementById('campFieldsDetected');
+  if(fd) fd.innerHTML = '<span style="color:var(--grn);font-weight:600">✓ '+campPreviewData.length+' contacts (custom mapping)</span>';
+  toast('✓ ' + campPreviewData.length + ' contacts mapped — review and confirm import');
+}
+// ─── END COLUMN MAPPER ────────────────────────────────────────────────────────
 
 
 // =====================================================================
