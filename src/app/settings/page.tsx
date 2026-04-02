@@ -56,12 +56,24 @@ export default function SettingsPage() {
         {/* WhatsApp */}
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="flex items-center gap-2"><MessageSquare size={14} /> WhatsApp</CardTitle>
-            <Badge variant={connected.whatsapp ? "green" : "amber"}>{connected.whatsapp ? "Connected" : "Pending"}</Badge>
+            <CardTitle className="flex items-center gap-2"><MessageSquare size={14} /> WhatsApp Integration</CardTitle>
+            <Badge variant={connected.whatsapp ? "green" : "amber"}>{connected.whatsapp ? "Connected" : "Direct Mode"}</Badge>
           </CardHeader>
-          <CardContent>
-            <p className="text-xs text-[var(--text-muted)]">Connect your WhatsApp Business account for CRM messaging and campaign automation.</p>
-            <Button size="sm" variant="secondary" className="mt-3" onClick={() => setConnected(prev => ({ ...prev, whatsapp: true }))}>Connect WhatsApp</Button>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-[var(--bg-elevated)] p-3">
+              <p className="text-xs font-medium text-[var(--text-secondary)]">Direct WhatsApp (Always Active)</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">Click &quot;Send&quot; on any contact to open your personal WhatsApp with a pre-filled message. No setup needed.</p>
+              <Badge variant="green" className="mt-2">Active</Badge>
+            </div>
+            <div className="rounded-lg border border-[var(--border-default)] p-3">
+              <p className="text-xs font-medium text-[var(--text-secondary)]">WhatsApp Business API (Optional)</p>
+              <p className="mt-1 text-xs text-[var(--text-muted)]">For automated campaigns and receiving messages. Add these env vars in Vercel:</p>
+              <ul className="mt-2 space-y-1 text-xs text-[var(--text-muted)]">
+                <li><code className="text-[var(--text-gold)]">WHATSAPP_ACCESS_TOKEN</code> — Meta Business access token</li>
+                <li><code className="text-[var(--text-gold)]">WHATSAPP_PHONE_NUMBER_ID</code> — Your WA phone number ID</li>
+                <li><code className="text-[var(--text-gold)]">WHATSAPP_WEBHOOK_VERIFY_TOKEN</code> — Webhook verification token</li>
+              </ul>
+            </div>
           </CardContent>
         </Card>
 
