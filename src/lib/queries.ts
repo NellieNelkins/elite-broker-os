@@ -197,6 +197,139 @@ export async function getListings() {
   });
 }
 
+// --- Coach ---
+
+export async function getCoachSession(date?: Date) {
+  const userId = await getUserId();
+  if (!userId) return null;
+
+  const targetDate = date || new Date();
+  // Normalize to start of day
+  const dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+
+  let session = await prisma.coachSession.findUnique({
+    where: { userId_date: { userId, date: dayStart } },
+  });
+
+  if (!session) {
+    // Calculate streak from previous sessions
+    const yesterday = new Date(dayStart);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const prevSession = await prisma.coachSession.findUnique({
+      where: { userId_date: { userId, date: yesterday } },
+    });
+    const streak = prevSession && prevSession.score > 0 ? prevSession.streak + 1 : 0;
+
+    session = await prisma.coachSession.create({
+      data: {
+        userId,
+        date: dayStart,
+        habits: [],
+        challengesDone: [],
+        streak,
+        score: 0,
+        targetCalls: 5,
+        targetViewings: 1,
+        targetOffers: 0,
+      },
+    });
+  }
+
+  // Get personal best streak
+  const bestSession = await prisma.coachSession.findFirst({
+    where: { userId },
+    orderBy: { streak: "desc" },
+    select: { streak: true },
+  });
+
+  return {
+    id: session.id,
+    date: session.date.toISOString(),
+    habits: session.habits as Array<{ name: string; completed: boolean; points: number }>,
+    challengesDone: session.challengesDone as string[],
+    streak: session.streak,
+    score: session.score,
+    personalBest: bestSession?.streak || 0,
+    targetCalls: session.targetCalls,
+    targetViewings: session.targetViewings,
+    targetOffers: session.targetOffers,
+  };
+}
+
+// --- WhatsApp Contacts ---
+
+export async function getWhatsAppContacts() {
+  const userId = await getUserId();
+  if (!userId) return [];
+
+  const contacts = await prisma.contact.findMany({
+    where: {
+      userId,
+      phone: { not: "" },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 50,
+    include: {
+      activities: {
+        where: { type: "message" },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
+    },
+  });
+
+  return contacts.map((c) => ({
+    id: c.id,
+    name: c.name,
+    phone: c.phone,
+    community: c.community,
+    type: c.type,
+    stage: c.stage,
+    priority: c.priority,
+    whatsappConnected: c.whatsappConnected,
+    replied: c.replied,
+    lastMsg: c.activities[0]?.description || null,
+    lastMsgAt: c.activities[0]?.createdAt.toISOString() || c.updatedAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+  }));
+}
+
+// --- Campaigns ---
+
+export async function getCampaigns() {
+  const userId = await getUserId();
+  if (!userId) return { campaigns: [], totals: { sent: 0, replies: 0, rate: 0 } };
+
+  const campaigns = await prisma.campaign.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { contacts: true } },
+    },
+  });
+
+  const totalSent = campaigns.reduce((s, c) => s + c.sentCount, 0);
+  const totalReplies = campaigns.reduce((s, c) => s + c.replyCount, 0);
+
+  return {
+    campaigns: campaigns.map((c) => ({
+      id: c.id,
+      name: c.name,
+      type: c.type,
+      status: c.status,
+      contactCount: c._count.contacts,
+      sentCount: c.sentCount,
+      replyCount: c.replyCount,
+      createdAt: c.createdAt.toISOString(),
+    })),
+    totals: {
+      sent: totalSent,
+      replies: totalReplies,
+      rate: totalSent > 0 ? Math.round((totalReplies / totalSent) * 1000) / 10 : 0,
+    },
+  };
+}
+
 // --- Empty defaults ---
 
 function emptyKPIs(): DashboardKPIs {
