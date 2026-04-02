@@ -197,6 +197,104 @@ export async function getListings() {
   });
 }
 
+// --- Activity Feed ---
+
+export async function getActivities(opts?: { page?: number; pageSize?: number; type?: string }) {
+  const userId = await getUserId();
+  if (!userId) return { activities: [], total: 0 };
+
+  const page = opts?.page || 1;
+  const pageSize = Math.min(opts?.pageSize || 30, 100);
+
+  const where = {
+    userId,
+    ...(opts?.type && { type: opts.type }),
+  };
+
+  const [activities, total] = await Promise.all([
+    prisma.activity.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: {
+        contact: { select: { id: true, name: true, phone: true } },
+        deal: { select: { id: true, name: true, stage: true, value: true } },
+      },
+    }),
+    prisma.activity.count({ where }),
+  ]);
+
+  return {
+    activities: activities.map((a) => ({
+      id: a.id,
+      type: a.type,
+      description: a.description,
+      createdAt: a.createdAt.toISOString(),
+      contact: a.contact ? { id: a.contact.id, name: a.contact.name, phone: a.contact.phone } : null,
+      deal: a.deal ? { id: a.deal.id, name: a.deal.name, stage: a.deal.stage, value: a.deal.value } : null,
+    })),
+    total,
+  };
+}
+
+// --- Follow-up Reminders ---
+
+export async function getFollowUpReminders() {
+  const userId = await getUserId();
+  if (!userId) return [];
+
+  const contacts = await prisma.contact.findMany({
+    where: {
+      userId,
+      stage: { notIn: ["Closed", "Lost"] },
+    },
+    orderBy: { lastContactedAt: "asc" },
+    include: {
+      deals: {
+        where: { stage: { notIn: ["Closed", "Lost"] } },
+        select: { id: true, name: true, stage: true, value: true },
+        take: 1,
+      },
+    },
+  });
+
+  const now = Date.now();
+
+  return contacts
+    .map((c) => {
+      const lastContact = c.lastContactedAt?.getTime() || c.createdAt.getTime();
+      const daysSince = Math.floor((now - lastContact) / (1000 * 60 * 60 * 24));
+
+      let urgency: "overdue" | "due_today" | "upcoming" | "ok";
+      if (daysSince >= 14) urgency = "overdue";
+      else if (daysSince >= 7) urgency = "due_today";
+      else if (daysSince >= 5) urgency = "upcoming";
+      else urgency = "ok";
+
+      return {
+        id: c.id,
+        name: c.name,
+        phone: c.phone,
+        type: c.type,
+        stage: c.stage,
+        priority: c.priority,
+        community: c.community,
+        daysSinceContact: daysSince,
+        lastContactedAt: c.lastContactedAt?.toISOString() || null,
+        urgency,
+        deal: c.deals[0] ? {
+          id: c.deals[0].id,
+          name: c.deals[0].name,
+          stage: c.deals[0].stage,
+          value: c.deals[0].value,
+        } : null,
+      };
+    })
+    .filter((c) => c.urgency !== "ok")
+    .sort((a, b) => b.daysSinceContact - a.daysSinceContact);
+}
+
 // --- Coach ---
 
 export async function getCoachSession(date?: Date) {

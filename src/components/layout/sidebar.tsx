@@ -20,6 +20,9 @@ import {
   Calculator,
   Settings,
   LogOut,
+  Clock,
+  Bell,
+  Upload,
 } from "lucide-react";
 
 const navItems = [
@@ -30,6 +33,8 @@ const navItems = [
   { label: "Discipline", href: "/coach", icon: Target },
   { label: "Forecast", href: "/dashboard/forecast", icon: BarChart3 },
   { label: "WhatsApp", href: "/whatsapp", icon: MessageSquare },
+  { label: "Reminders", href: "/reminders", icon: Bell },
+  { label: "Activity", href: "/activity", icon: Clock },
   { label: "Market", href: "/market", icon: Briefcase },
 ];
 
@@ -40,6 +45,7 @@ const toolItems = [
   { label: "AI Agents", href: "/dashboard/agents", icon: Bot },
   { label: "Coach", href: "/coach", icon: Brain },
   { label: "Calculator", href: "/calculator", icon: Calculator },
+  { label: "Import Data", href: "/import", icon: Upload },
 ];
 
 export function Sidebar() {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useRef } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardValue } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Target, Flame, Trophy, MessageSquare } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Target, Flame, Trophy, MessageSquare, Send, Loader2 } from "lucide-react";
 
 const defaultHabits = [
   { name: "Morning market check", points: 10 },
@@ -32,7 +33,20 @@ interface CoachData {
   personalBest: number;
 }
 
-export default function CoachView({ session }: { session: CoachData | null }) {
+interface ChatMessage {
+  role: "user" | "assistant";
+  text: string;
+}
+
+const quickPrompts = [
+  { label: "Pipeline Review", prompt: "Review my current pipeline and tell me which deals need attention. What should I prioritize today?" },
+  { label: "Slow Day Fix", prompt: "I'm having a slow day with no leads coming in. Give me 5 specific actions I can take right now to generate business." },
+  { label: "Motivation", prompt: "I need a motivational boost. Based on my current performance, remind me what I'm doing well and push me to the next level." },
+  { label: "Follow-up Plan", prompt: "I have overdue follow-ups. Help me create a prioritized follow-up plan for today." },
+  { label: "Closing Tips", prompt: "I have hot deals in my pipeline. Give me specific closing techniques for Dubai luxury real estate." },
+];
+
+export default function CoachView({ session, coachContext }: { session: CoachData | null; coachContext: string }) {
   const savedHabits = session?.habits?.length
     ? session.habits
     : defaultHabits.map((h) => ({ ...h, completed: false }));
@@ -163,23 +177,154 @@ export default function CoachView({ session }: { session: CoachData | null }) {
         </CardContent>
       </Card>
 
-      {/* AI Coach chat placeholder */}
-      <Card>
-        <CardHeader className="flex-row items-center justify-between">
-          <CardTitle>AI Coach</CardTitle>
-          <MessageSquare size={16} className="text-[var(--text-gold)]" />
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">
-            <p>Ask your AI coach for sales tips, pipeline advice, or motivation. Connect your Anthropic API key in Settings to enable.</p>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button variant="secondary" size="sm">Pipeline Review</Button>
-            <Button variant="secondary" size="sm">Slow Day Fix</Button>
-            <Button variant="secondary" size="sm">Motivation</Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* AI Coach Chat */}
+      <AiCoachChat coachContext={coachContext} />
     </div>
+  );
+}
+
+function AiCoachChat({ coachContext }: { coachContext: string }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const sendMessage = async (prompt: string) => {
+    if (!prompt.trim() || loading) return;
+
+    const userMsg: ChatMessage = { role: "user", text: prompt };
+    setMessages((prev) => [...prev, userMsg]);
+    setInput("");
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+          context: coachContext,
+          type: "coaching",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setError(data.error || "Failed to get response");
+        setLoading(false);
+        return;
+      }
+
+      const aiMsg: ChatMessage = { role: "assistant", text: data.data.content };
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch {
+      setError("Network error — check your connection");
+    }
+    setLoading(false);
+    setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
+  };
+
+  return (
+    <Card>
+      <CardHeader className="flex-row items-center justify-between">
+        <CardTitle>AI Coach</CardTitle>
+        <div className="flex items-center gap-2">
+          <MessageSquare size={16} className="text-[var(--text-gold)]" />
+          {messages.length > 0 && (
+            <Badge variant="default">{messages.length} messages</Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {/* Chat messages */}
+        {messages.length === 0 && !error && (
+          <div className="rounded-lg bg-[var(--bg-elevated)] p-4 text-sm text-[var(--text-secondary)]">
+            <p>
+              Your AI coach has access to your live pipeline data, performance
+              score, and habits. Ask for personalized advice or use a quick
+              prompt below.
+            </p>
+          </div>
+        )}
+
+        {messages.length > 0 && (
+          <div className="max-h-[400px] space-y-3 overflow-y-auto rounded-lg bg-[var(--bg-elevated)] p-4">
+            {messages.map((msg, i) => (
+              <div
+                key={i}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[85%] rounded-xl px-4 py-2.5 text-sm ${
+                    msg.role === "user"
+                      ? "rounded-tr-sm bg-[var(--gold-900)] text-[var(--text-primary)]"
+                      : "rounded-tl-sm bg-[var(--bg-surface)] text-[var(--text-primary)]"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap">{msg.text}</div>
+                </div>
+              </div>
+            ))}
+            {loading && (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-xl rounded-tl-sm bg-[var(--bg-surface)] px-4 py-2.5 text-sm text-[var(--text-muted)]">
+                  <Loader2 size={14} className="animate-spin" />
+                  Thinking...
+                </div>
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg border border-[var(--red)]/20 bg-[var(--red)]/5 px-4 py-3 text-sm text-[var(--red)]">
+            {error}
+          </div>
+        )}
+
+        {/* Quick prompts */}
+        <div className="flex flex-wrap gap-2">
+          {quickPrompts.map((qp) => (
+            <Button
+              key={qp.label}
+              variant="secondary"
+              size="sm"
+              disabled={loading}
+              onClick={() => sendMessage(qp.prompt)}
+            >
+              {qp.label}
+            </Button>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Ask your AI coach anything..."
+            value={input}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+            onKeyDown={(e: React.KeyboardEvent) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage(input);
+              }
+            }}
+            disabled={loading}
+            className="flex-1"
+          />
+          <Button
+            size="md"
+            onClick={() => sendMessage(input)}
+            disabled={loading || !input.trim()}
+          >
+            {loading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
