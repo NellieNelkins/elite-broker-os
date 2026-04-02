@@ -2,11 +2,6 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function getConnectionString(): string {
-  // Support multiple env var names:
-  // - DATABASE_URL: manual setup
-  // - POSTGRES_PRISMA_URL: Supabase-Vercel integration (pooled, recommended)
-  // - POSTGRES_URL: Supabase-Vercel integration (pooled)
-  // - POSTGRES_URL_NON_POOLING: Supabase-Vercel integration (direct)
   const url =
     process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
@@ -23,7 +18,15 @@ function getConnectionString(): string {
 
 function createPrismaClient() {
   const connectionString = getConnectionString();
-  const adapter = new PrismaPg({ connectionString });
+
+  // Supabase pooler (Supavisor) requires SSL.
+  // Append sslmode=require if not already present.
+  const url = new URL(connectionString);
+  if (!url.searchParams.has("sslmode")) {
+    url.searchParams.set("sslmode", "require");
+  }
+
+  const adapter = new PrismaPg({ connectionString: url.toString() });
   return new PrismaClient({ adapter });
 }
 

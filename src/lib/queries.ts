@@ -302,8 +302,8 @@ export async function getCoachSession(date?: Date) {
   if (!userId) return null;
 
   const targetDate = date || new Date();
-  // Normalize to start of day
-  const dayStart = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+  // Normalize to start of day in UTC (consistent across server environments)
+  const dayStart = new Date(Date.UTC(targetDate.getUTCFullYear(), targetDate.getUTCMonth(), targetDate.getUTCDate()));
 
   let session = await prisma.coachSession.findUnique({
     where: { userId_date: { userId, date: dayStart } },

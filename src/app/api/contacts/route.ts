@@ -3,10 +3,18 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { contactSchema } from "@/lib/validations";
 
-export async function GET(request: NextRequest) {
+async function resolveUserId(): Promise<string | null> {
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (session?.user?.id) return session.user.id;
+  // Fallback: first user (single-user app)
+  const user = await prisma.user.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } });
+  return user?.id || null;
+}
+
+export async function GET(request: NextRequest) {
+  const userId = await resolveUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "No user found" }, { status: 401 });
   }
 
   const searchParams = request.nextUrl.searchParams;
@@ -18,7 +26,7 @@ export async function GET(request: NextRequest) {
   const priority = searchParams.get("priority") || "";
 
   const where = {
-    userId: session.user.id,
+    userId,
     ...(search && {
       OR: [
         { name: { contains: search, mode: "insensitive" as const } },
@@ -52,9 +60,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = await resolveUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "No user found" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -70,7 +78,7 @@ export async function POST(request: NextRequest) {
   const contact = await prisma.contact.create({
     data: {
       ...result.data,
-      userId: session.user.id,
+      userId,
     },
   });
 

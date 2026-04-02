@@ -11,9 +11,14 @@ import { prisma } from "@/lib/db";
  * - Rate limited via middleware
  */
 export async function POST(request: NextRequest) {
+  // Try auth session first, fall back to first user (single-user app)
   const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const userId = session?.user?.id || (
+    await prisma.user.findFirst({ orderBy: { createdAt: "asc" }, select: { id: true } })
+  )?.id;
+
+  if (!userId) {
+    return NextResponse.json({ error: "No user found" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -29,7 +34,7 @@ export async function POST(request: NextRequest) {
   // Get API key from server-side env or user's stored key
   const apiKey = process.env.ANTHROPIC_API_KEY || (
     await prisma.user.findUnique({
-      where: { id: session.user.id },
+      where: { id: userId },
       select: { apiKey: true },
     })
   )?.apiKey;

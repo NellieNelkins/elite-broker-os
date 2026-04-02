@@ -1,10 +1,39 @@
 "use client";
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 
 export default function LoginPage() {
+  const [email, setEmail] = useState("broker@elitebroker.ae");
+  const [loading, setLoading] = useState(false);
+
+  const handleGoogleSignIn = () => {
+    window.location.href = "/api/auth/signin/google";
+  };
+
+  const handleDemoSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    // Use NextAuth's credentials provider via fetch
+    const res = await fetch("/api/auth/callback/credentials", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        email,
+        csrfToken: await getCsrfToken(),
+      }),
+      redirect: "follow",
+    });
+
+    if (res.ok) {
+      window.location.href = "/dashboard";
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[var(--bg-deepest)]">
       <Card className="w-full max-w-sm glow-gold">
@@ -21,9 +50,7 @@ export default function LoginPage() {
             variant="secondary"
             size="lg"
             className="w-full gap-3"
-            onClick={() => {
-              /* signIn("google") */
-            }}
+            onClick={handleGoogleSignIn}
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
@@ -57,21 +84,17 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Demo login for development */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              // signIn("credentials", { email })
-            }}
-            className="space-y-3"
-          >
+          {/* Demo login */}
+          <form onSubmit={handleDemoSignIn} className="space-y-3">
             <Input
               type="email"
               placeholder="Enter your email for demo"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <Button type="submit" size="lg" className="w-full">
-              Enter Demo Mode
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : "Enter Demo Mode"}
             </Button>
           </form>
 
@@ -82,4 +105,14 @@ export default function LoginPage() {
       </Card>
     </div>
   );
+}
+
+async function getCsrfToken(): Promise<string> {
+  try {
+    const res = await fetch("/api/auth/csrf");
+    const data = await res.json();
+    return data.csrfToken || "";
+  } catch {
+    return "";
+  }
 }
