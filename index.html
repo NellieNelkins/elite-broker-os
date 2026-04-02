@@ -3591,6 +3591,7 @@ body { font-feature-settings: 'kern' 1, 'liga' 1; letter-spacing: -.01em; }
   <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
     <button class="btn btn-gold" onclick="campAddManual()" style="padding:6px 14px">➕ Add Contact</button>
     <button class="btn" onclick="campImportXlsx()">📊 Import</button>
+    <button class="btn" onclick="seedDemoCampaigns()" style="background:var(--card2);border-color:rgba(201,168,76,.3);color:var(--gold)" title="Load 4 demo Dubai campaign contacts">🌟 Load Demo</button>
     <button class="btn" onclick="campDLDTemplate()" style="background:var(--card2);border-color:var(--border)" title="Download DLD-format Excel template">📋 DLD Template</button>
     <button class="btn" onclick="campExportXlsx()" style="background:var(--card2);border-color:var(--border)">⬇ Export</button>
     <button class="btn" onclick="campLoadFromSheet()" style="background:var(--card2);border-color:rgba(74,158,232,.3);color:var(--blue)" title="Pull contacts from Google Sheet into campaign DB">📥 Load from Sheet</button>
@@ -7358,6 +7359,25 @@ var COLUMN_MAP = {
 function campSave(){
   localStorage.setItem('eb_campDB',    JSON.stringify(campDB));
   localStorage.setItem('eb_campFlows', JSON.stringify(campFlows));
+}
+function seedDemoCampaigns(){
+  var now = Date.now();
+  var demos = [
+    { id:'camp_demo_001', name:'Ahmed Al Mansoori', phone:'971501234567', email:'ahmed.mansoori@email.com', type:'Seller', stage:'New', urgency:'Hot', community:'Arabian Ranches', subComm:'Saheel', property:'Villa 14, Saheel 3', bedrooms:'5', propType:'Villa', area:'5800', askingPrice:'4200000', marketVal:'4350000', nationality:'Emirati', motivation:'Upgrading to larger property', source:'DLD Data', notes:'Owner since 2015. Motivated to sell within 3 months.', sent:false, addedAt:now },
+    { id:'camp_demo_002', name:'Priya Sharma', phone:'971509876543', email:'priya.sharma@email.com', type:'Investor', stage:'Contacted', urgency:'Warm', community:'Downtown Dubai', subComm:'Burj Residences', property:'Apt 2204, Tower 3', bedrooms:'2', propType:'Apartment', area:'1450', askingPrice:'1850000', marketVal:'1920000', nationality:'Indian', motivation:'Portfolio diversification', source:'Referral', notes:'Looking for high-ROI units. Flexible on closing date.', sent:false, addedAt:now },
+    { id:'camp_demo_003', name:'James Harrison', phone:'971554441122', email:'james.harrison@email.com', type:'Buyer', stage:'Qualified', urgency:'Hot', community:'Palm Jumeirah', subComm:'Signature Villas', property:'Frond G, Villa 23', bedrooms:'3', propType:'Villa', area:'4200', askingPrice:'6500000', marketVal:'6750000', nationality:'British', motivation:'Primary residence — relocating family from London', source:'Website Inquiry', notes:'Pre-approved mortgage. Wants sea-facing unit. Target move-in Q3 2026.', sent:false, addedAt:now },
+    { id:'camp_demo_004', name:'Fatima Al Rashidi', phone:'971506667788', email:'fatima.rashidi@email.com', type:'Landlord', stage:'Viewing Scheduled', urgency:'Warm', community:'Jumeirah Village Circle', subComm:'District 10', property:'Apt 507, The Myth', bedrooms:'1', propType:'Apartment', area:'780', askingPrice:'850000', marketVal:'870000', nationality:'Emirati', motivation:'Selling to reinvest in commercial property', source:'Cold Call', notes:'Currently tenanted — lease expires June 2026. Happy to sell with tenant.', sent:false, addedAt:now }
+  ];
+  var existingIds = new Set(campDB.map(function(c){ return c.id; }));
+  var added = 0;
+  demos.forEach(function(d){
+    if(!existingIds.has(d.id)){ campDB.push(d); added++; }
+  });
+  if(added === 0){ toast('Demo contacts already loaded'); return; }
+  campSave();
+  campUpdateStats();
+  campRenderContacts();
+  toast('✓ ' + added + ' demo campaign contacts loaded');
 }
 function newsSaveDB(){ localStorage.setItem('eb_newsDB',   JSON.stringify(newsDB)); }
 function blastSaveDB(){ localStorage.setItem('eb_blastDB',  JSON.stringify(blastDB)); }
