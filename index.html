@@ -3,9 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com data:;
+  connect-src https://workerjs.karkarren02.workers.dev https://script.google.com https://docs.google.com https://www.googleapis.com https://drive.google.com https://onedrive.live.com https://*.sharepoint.com;
+  img-src 'self' data: blob:;
+  frame-src 'none';
+  object-src 'none';
+">
 <title>ELITE BROKER OS v3 — Dubai 2026</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
 <style>
 /* ====================================
    DESIGN TOKENS
@@ -4635,7 +4646,7 @@ async function runAI(t){
     let txt=(data.content&&data.content.length>0)?data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text||'';}).join(''):'No response received.';
     txt=txt.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/^#{1,3} (.*)/gm,'<h3 style="font-family:var(--serif);font-size:15px;color:var(--text);margin:9px 0 4px">$1</h3>').replace(/^\d+\. (.*)/gm,'<li>$1</li>').replace(/^[•\-] (.*)/gm,'<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g,'<ul style="padding-left:14px;margin:4px 0">$&</ul>').replace(/\n\n/g,'<br>').replace(/\n/g,'<br>');
     document.getElementById('ab2').innerHTML=`<div class="aib"><h3>🤖 AI Analysis — ${src}</h3><div>${txt}</div></div>`;
-  }catch(e){document.getElementById('ab2').innerHTML=`<div class="aib" style="border-color:rgba(255,61,90,.25);color:var(--cr)">Error: ${e.message}</div>`;}
+  }catch(e){document.getElementById('ab2').innerHTML='<div class="aib" style="border-color:rgba(255,61,90,.25);color:var(--cr)">Error: '+_he(e.message||'Unknown error')+'</div>';}
 }
 
 function toggleListed(i){
@@ -4957,8 +4968,19 @@ let _marketInitDone = false;
 
 const MARKET_SYSTEM = 'You are an elite Dubai real estate expert. Your primary data sources are: (1) DXBInteract (dxbinteract.com) — transaction history, price per sqft, supply data, market overviews, rental yields; (2) DLD (Dubai Land Department) — official transaction records; (3) Property Finder and Bayut — listings and trends; (4) RERA — regulations and compliance. Always search dxbinteract.com first for transaction and price data. Cite your sources. Give specific data-driven answers with real numbers. Be the expert mentor a top broker needs.';
 
+// Escape a plain string for safe insertion into innerHTML
+function _he(s){ var d=document.createElement('div'); d.textContent=String(s||''); return d.innerHTML; }
+
+// Simple per-key rate limiter — returns false if called too soon, true if allowed
+var _rlLast = {};
+function _rateAllow(key, minMs){
+  var now = Date.now();
+  if(_rlLast[key] && (now - _rlLast[key]) < minMs){ return false; }
+  _rlLast[key] = now; return true;
+}
+
 function formatMD(text){
-  return text
+  var html = String(text||'')
     .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
     .replace(/^### (.*)/gm,'<h4>$1</h4>')
     .replace(/^## (.*)/gm,'<h3>$1</h3>')
@@ -4967,6 +4989,9 @@ function formatMD(text){
     .replace(/^[•\-] (.*)/gm,'<li>$1</li>')
     .replace(/(<li>.*<\/li>\n?)+/g,'<ul style="padding-left:14px;margin:5px 0">$&</ul>')
     .replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  return typeof DOMPurify !== 'undefined'
+    ? DOMPurify.sanitize(html, {ALLOWED_TAGS:['strong','em','h3','h4','ul','li','br','b','i','span','div','p'],ALLOWED_ATTR:['style']})
+    : html;
 }
 
 async function loadDailyFact(){
@@ -5072,6 +5097,7 @@ function initChat(){
 
 async function sendChat(){
   if(!checkApiKey()) return;
+  if(!_rateAllow('sendChat', 2000)){ toast('Please wait a moment before sending again', true); return; }
   var input=document.getElementById('chatInput');
   var btn=document.getElementById('chatSendBtn');
   var q=input.value.trim();
@@ -8356,6 +8382,7 @@ function appendAgentMsg(role, text, agent){
 
 async function agentSend(){
   if(!checkApiKey()) return;
+  if(!_rateAllow('agentSend', 2000)){ toast('Please wait a moment before sending again', true); return; }
   var sel   = document.getElementById('agentSelect');
   var agentId = sel ? sel.value : '';
   if(!agentId){ toast('Select an agent first',true); return; }
@@ -8428,7 +8455,7 @@ async function agentSend(){
     agentRenderActivity(agentId);
 
   }catch(e){
-    appendAgentMsg('agent','Sorry, I encountered an error: '+e.message+'. Please try again.', agent);
+    appendAgentMsg('agent','Sorry, I encountered an error: '+_he(e.message||'Unknown error')+'. Please try again.', agent);
   }
 }
 
@@ -8520,7 +8547,7 @@ function campImportXlsx(){ document.getElementById('campFile').click(); }
 // ===================================================================
 
 var GS = {
-  url:         localStorage.getItem('eb_gs_url') || 'https://script.google.com/macros/s/AKfycbxKccrziXehiuEHxy8hbW9YJQ_NG5nqbqQrSFXJlf3ytw8pxBMZKqtw5Y6n4Scv-al3zQ/exec',
+  url:         localStorage.getItem('eb_gs_url') || '',
   syncActive:  true,
   lastSync:    null,
   syncInterval:null,
