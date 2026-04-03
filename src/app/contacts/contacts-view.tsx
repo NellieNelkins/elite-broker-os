@@ -226,28 +226,68 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
         id: "actions",
         header: "",
         cell: ({ row }) => (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 relative">
             <Button variant="ghost" size="sm"><Phone size={14} /></Button>
             <Button variant="ghost" size="sm">
               <MessageSquare size={14} className={row.original.whatsappConnected ? "text-[var(--green)]" : ""} />
             </Button>
+            <Button variant="ghost" size="sm" onClick={() => {
+              setShowAddToList(showAddToList === row.original.id ? null : row.original.id);
+              setAddToListName("");
+            }}>
+              <List size={14} />
+            </Button>
+            {showAddToList === row.original.id && (
+              <div className="absolute right-0 top-full z-50 mt-1 w-56 rounded-[var(--radius-sm)] border border-[var(--border-default)] bg-[var(--bg-surface)] p-3 shadow-[var(--shadow-lg)]">
+                <p className="mb-2 text-xs font-medium text-[var(--text-muted)]">Add to Smart List</p>
+                <div className="space-y-1 mb-2 max-h-32 overflow-y-auto">
+                  {smartLists.map((list) => (
+                    <button
+                      key={list.id}
+                      onClick={() => handleAddToListFromRow(row.original.id, "existing", list.id)}
+                      className="w-full rounded px-2 py-1 text-left text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]"
+                    >
+                      {list.name} ({list.contactIds.length})
+                    </button>
+                  ))}
+                </div>
+                <div className="border-t border-[var(--border-subtle)] pt-2">
+                  <p className="mb-1 text-xs text-[var(--text-muted)]">Or create new:</p>
+                  <div className="flex gap-1">
+                    <Input
+                      placeholder="List name"
+                      value={addToListName}
+                      onChange={(e) => setAddToListName(e.target.value)}
+                      className="h-7 text-xs"
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddToListFromRow(row.original.id, "new"); }}
+                    />
+                    <Button size="sm" onClick={() => handleAddToListFromRow(row.original.id, "new")} className="h-7 px-2">
+                      <Plus size={12} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ),
       },
     ],
-    []
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [showAddToList, smartLists, addToListName]
   );
 
   const table = useReactTable({
-    data: contacts,
+    data: filteredContacts,
     columns,
-    state: { sorting, globalFilter },
+    state: { sorting, globalFilter, rowSelection },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    enableRowSelection: true,
     initialState: { pagination: { pageSize: 20 } },
   });
 
@@ -272,6 +312,40 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
           />
         </div>
       </div>
+
+      {smartLists.length > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-xs font-medium text-[var(--text-muted)]">Smart Lists:</span>
+          {smartLists.map((list) => (
+            <button
+              key={list.id}
+              onClick={() => {
+                setActiveList(activeList?.id === list.id ? null : list);
+                setRowSelection({});
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium border transition-colors ${
+                activeList?.id === list.id
+                  ? "border-[var(--border-gold)] bg-[var(--gold-900)] text-[var(--text-gold)]"
+                  : "border-[var(--border-default)] bg-[var(--bg-elevated)] text-[var(--text-secondary)] hover:border-[var(--border-gold)]"
+              }`}
+            >
+              <List size={10} />
+              {list.name} ({list.contactIds.length})
+              {activeList?.id === list.id && (
+                <X size={10} className="ml-1 cursor-pointer" onClick={(e) => { e.stopPropagation(); setActiveList(null); setRowSelection({}); }} />
+              )}
+            </button>
+          ))}
+          {activeList && (
+            <button
+              onClick={() => handleDeleteSmartList(activeList.id)}
+              className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-[var(--red)] border border-[var(--border-default)] hover:border-[var(--red)] transition-colors"
+            >
+              <Trash2 size={10} /> Delete List
+            </button>
+          )}
+        </div>
+      )}
 
       <Card className="overflow-hidden">
         <div className="overflow-x-auto">
@@ -329,6 +403,48 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
           onClose={() => setShowCreate(false)}
           onCreated={() => { setShowCreate(false); router.refresh(); }}
         />
+      )}
+
+      {/* Floating action bar for selection */}
+      {Object.keys(rowSelection).length > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 flex items-center gap-3 rounded-[var(--radius-lg)] border border-[var(--border-gold)] bg-[var(--bg-surface)] px-5 py-3 shadow-[var(--shadow-lg)]">
+          <span className="text-sm text-[var(--text-primary)]">
+            {selectedContactIds.length} selected
+          </span>
+          <Button size="sm" onClick={() => setShowCreateList(true)}>
+            <List size={14} /> Create Smart List
+          </Button>
+          <Button variant="secondary" size="sm" onClick={() => setRowSelection({})}>
+            Clear
+          </Button>
+        </div>
+      )}
+
+      {/* Create Smart List modal */}
+      {showCreateList && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-md rounded-[var(--radius-lg)] border border-[var(--border-default)] bg-[var(--bg-surface)] p-6 shadow-[var(--shadow-lg)]">
+            <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-1">Create Smart List</h3>
+            <p className="text-sm text-[var(--text-muted)] mb-4">
+              {selectedContactIds.length} contact{selectedContactIds.length !== 1 ? "s" : ""} will be added to this list.
+            </p>
+            <Input
+              placeholder="Enter list name..."
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleCreateSmartList(); }}
+              autoFocus
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <Button variant="secondary" size="sm" onClick={() => { setShowCreateList(false); setNewListName(""); }}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleCreateSmartList} disabled={!newListName.trim()}>
+                Create List
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
