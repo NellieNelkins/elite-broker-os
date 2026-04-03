@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CreateContactModal } from "./create-contact-modal";
 import {
@@ -12,6 +12,7 @@ import {
   flexRender,
   type ColumnDef,
   type SortingState,
+  type RowSelectionState,
 } from "@tanstack/react-table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -25,8 +26,19 @@ import {
   ArrowUpDown,
   Phone,
   MessageSquare,
+  List,
+  X,
+  Trash2,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import {
+  getSmartLists,
+  saveSmartList,
+  addToSmartList,
+  deleteSmartList,
+  type SmartList,
+} from "@/lib/smart-lists";
+import { toast } from "sonner";
 
 interface ContactRow {
   id: string;
@@ -62,10 +74,90 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [smartLists, setSmartLists] = useState<SmartList[]>([]);
+  const [activeList, setActiveList] = useState<SmartList | null>(null);
+  const [showCreateList, setShowCreateList] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [showAddToList, setShowAddToList] = useState<string | null>(null);
+  const [addToListName, setAddToListName] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    setSmartLists(getSmartLists());
+  }, []);
+
+  const refreshSmartLists = useCallback(() => {
+    setSmartLists(getSmartLists());
+  }, []);
+
+  const filteredContacts = useMemo(() => {
+    if (!activeList) return contacts;
+    const ids = new Set(activeList.contactIds);
+    return contacts.filter((c) => ids.has(c.id));
+  }, [contacts, activeList]);
+
+  const selectedContactIds = useMemo(() => {
+    return Object.keys(rowSelection)
+      .filter((key) => rowSelection[key])
+      .map((idx) => filteredContacts[Number(idx)]?.id)
+      .filter(Boolean);
+  }, [rowSelection, filteredContacts]);
+
+  const handleCreateSmartList = () => {
+    if (!newListName.trim()) return;
+    saveSmartList({ name: newListName.trim(), contactIds: selectedContactIds });
+    refreshSmartLists();
+    setShowCreateList(false);
+    setNewListName("");
+    setRowSelection({});
+    toast.success(`Smart list "${newListName.trim()}" created with ${selectedContactIds.length} contacts`);
+  };
+
+  const handleDeleteSmartList = (id: string) => {
+    deleteSmartList(id);
+    refreshSmartLists();
+    if (activeList?.id === id) setActiveList(null);
+    toast.success("Smart list deleted");
+  };
+
+  const handleAddToListFromRow = (contactId: string, mode: "new" | "existing", listId?: string) => {
+    if (mode === "new") {
+      if (!addToListName.trim()) return;
+      saveSmartList({ name: addToListName.trim(), contactIds: [contactId] });
+      toast.success(`Smart list "${addToListName.trim()}" created`);
+    } else if (listId) {
+      addToSmartList(listId, [contactId]);
+      const list = smartLists.find((l) => l.id === listId);
+      toast.success(`Added to "${list?.name}"`);
+    }
+    refreshSmartLists();
+    setShowAddToList(null);
+    setAddToListName("");
+  };
 
   const columns = useMemo<ColumnDef<ContactRow>[]>(
     () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            checked={table.getIsAllPageRowsSelected()}
+            onChange={table.getToggleAllPageRowsSelectedHandler()}
+            className="h-4 w-4 rounded border-[var(--border-default)] accent-[var(--gold-500)]"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            className="h-4 w-4 rounded border-[var(--border-default)] accent-[var(--gold-500)]"
+          />
+        ),
+        enableSorting: false,
+      },
       {
         accessorKey: "name",
         header: ({ column }) => (

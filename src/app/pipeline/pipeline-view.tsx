@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, MoreHorizontal, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { CreateDealModal } from "./create-deal-modal";
+import { toast } from "sonner";
 
 interface DealCard {
   id: string;
@@ -34,12 +35,46 @@ const stageColors: Record<string, string> = {
   Closed: "var(--green)",
 };
 
-function DealCardUI({ deal }: { deal: DealCard }) {
+function DealCardUI({ deal, currentStage, onMove }: { deal: DealCard; currentStage: string; onMove: (dealId: string, newStage: string) => void }) {
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const stages = ["Lead", "Qualified", "Viewing Done", "Offer Made", "Under Offer", "Closed"];
+
+  useEffect(() => {
+    if (!showMenu) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setShowMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showMenu]);
+
   return (
     <div className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-deep)] p-3 transition-all hover:border-[var(--border-gold)] hover:shadow-[var(--shadow-sm)]">
       <div className="flex items-start justify-between">
         <p className="text-sm font-medium text-[var(--text-primary)]">{deal.name}</p>
-        <Button variant="ghost" size="sm" className="h-6 w-6 p-0"><MoreHorizontal size={12} /></Button>
+        <div className="relative" ref={menuRef}>
+          <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setShowMenu(!showMenu)}>
+            <MoreHorizontal size={12} />
+          </Button>
+          {showMenu && (
+            <div className="absolute right-0 top-7 z-20 w-44 rounded-[var(--radius-md)] border border-[var(--border-default)] bg-[var(--bg-surface)] p-1 shadow-[var(--shadow-lg)]">
+              <p className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">Move to</p>
+              {stages.filter(s => s !== currentStage).map(stage => (
+                <button
+                  key={stage}
+                  onClick={() => { onMove(deal.id, stage); setShowMenu(false); }}
+                  className="flex w-full items-center gap-2 rounded-[var(--radius-sm)] px-2 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)]"
+                >
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: stageColors[stage] || "var(--blue)" }} />
+                  {stage}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
       <p className="mt-0.5 text-xs text-[var(--text-muted)]">{deal.community || "—"}</p>
       <div className="mt-2 flex items-center justify-between">
@@ -67,8 +102,27 @@ interface PipelineViewProps {
 
 export function PipelineView({ stages, totalValue, totalCommission }: PipelineViewProps) {
   const [showCreate, setShowCreate] = useState(false);
+  const [moving, setMoving] = useState(false);
   const router = useRouter();
   const totalDeals = stages.reduce((sum, s) => sum + s.deals.length, 0);
+
+  async function moveDeal(dealId: string, newStage: string) {
+    setMoving(true);
+    try {
+      const res = await fetch("/api/pipeline", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: dealId, stage: newStage }),
+      });
+      if (!res.ok) throw new Error("Failed to move deal");
+      toast.success(`Deal moved to ${newStage}`);
+      router.refresh();
+    } catch {
+      toast.error("Failed to move deal");
+    } finally {
+      setMoving(false);
+    }
+  }
 
   return (
     <div className="animate-fade-in space-y-5">
@@ -105,7 +159,7 @@ export function PipelineView({ stages, totalValue, totalCommission }: PipelineVi
               {stage.deals.length === 0 ? (
                 <p className="py-4 text-center text-xs text-[var(--text-muted)]">No deals</p>
               ) : (
-                stage.deals.map((deal) => <DealCardUI key={deal.id} deal={deal} />)
+                stage.deals.map((deal) => <DealCardUI key={deal.id} deal={deal} currentStage={stage.name} onMove={moveDeal} />)
               )}
             </div>
           </div>

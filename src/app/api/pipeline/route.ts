@@ -58,3 +58,41 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ success: true, data: deal }, { status: 201 });
 }
+
+export async function PATCH(request: NextRequest) {
+  const userId = await resolveUserId();
+  if (!userId) {
+    return NextResponse.json({ error: "No user found" }, { status: 401 });
+  }
+
+  const { id, stage } = await request.json();
+  if (!id || !stage) {
+    return NextResponse.json({ error: "id and stage required" }, { status: 400 });
+  }
+
+  const validStages = ["Lead", "Qualified", "Viewing Done", "Offer Made", "Under Offer", "Closed", "Lost"];
+  if (!validStages.includes(stage)) {
+    return NextResponse.json({ error: "Invalid stage" }, { status: 400 });
+  }
+
+  const deal = await prisma.deal.updateMany({
+    where: { id, userId },
+    data: { stage },
+  });
+
+  if (deal.count === 0) {
+    return NextResponse.json({ error: "Deal not found" }, { status: 404 });
+  }
+
+  // Log activity
+  await prisma.activity.create({
+    data: {
+      userId,
+      dealId: id,
+      type: "deal_update",
+      description: `Deal moved to ${stage}`,
+    },
+  });
+
+  return NextResponse.json({ success: true });
+}
