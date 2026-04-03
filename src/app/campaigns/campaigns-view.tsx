@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Send, Users, BarChart3 } from "lucide-react";
+import CreateCampaignModal from "./create-campaign-modal";
 
 interface CampaignData {
   id: string;
@@ -42,6 +45,9 @@ export default function CampaignsView({
   campaigns: CampaignData[];
   totals: CampaignTotals;
 }) {
+  const [showModal, setShowModal] = useState(false);
+  const router = useRouter();
+
   return (
     <div className="animate-fade-in space-y-5">
       <div className="flex items-center justify-between">
@@ -51,7 +57,7 @@ export default function CampaignsView({
             WhatsApp campaigns, newsletters, and listing blasts
           </p>
         </div>
-        <Button size="md">
+        <Button size="md" onClick={() => setShowModal(true)}>
           <Plus size={16} /> New Campaign
         </Button>
       </div>
@@ -143,6 +149,16 @@ export default function CampaignsView({
           </Card>
         ))}
       </div>
+
+      {showModal && (
+        <CreateCampaignModal
+          onClose={() => setShowModal(false)}
+          onCreated={() => {
+            setShowModal(false);
+            router.refresh();
+          }}
+        />
+      )}
     </div>
   );
 }

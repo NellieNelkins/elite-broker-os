@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { getCoachSession, getDashboardKPIs, getFunnelStages, getFollowUpReminders } from "@/lib/queries";
 import CoachView from "./coach-view";
 
+export const metadata: Metadata = { title: "Coach — Elite Broker OS" };
 export const dynamic = "force-dynamic";
 
 export default async function CoachPage() {

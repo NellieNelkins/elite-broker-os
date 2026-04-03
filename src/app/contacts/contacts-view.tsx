@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { CreateContactModal } from "./create-contact-modal";
 import {
   useReactTable,
   getCoreRowModel,
@@ -59,6 +61,8 @@ interface ContactsViewProps {
 export function ContactsView({ contacts, total }: ContactsViewProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const router = useRouter();
 
   const columns = useMemo<ColumnDef<ContactRow>[]>(
     () => [
@@ -162,7 +166,7 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
           <h2 className="text-xl font-semibold text-[var(--text-gold)]">Contacts</h2>
           <p className="text-sm text-[var(--text-muted)]">{total} contacts in your CRM</p>
         </div>
-        <Button size="md"><Plus size={16} /> Add Contact</Button>
+        <Button size="md" onClick={() => setShowCreate(true)}><Plus size={16} /> Add Contact</Button>
       </div>
 
       <div className="flex items-center gap-3">
@@ -227,6 +231,13 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
           </div>
         </div>
       </Card>
+      {showCreate && (
+        <CreateContactModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); router.refresh(); }}
+        />
+      )}
     </div>
   );
 }

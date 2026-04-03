@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { getPipelineDeals } from "@/lib/queries";
 import { PipelineView } from "./pipeline-view";
 
+export const metadata: Metadata = { title: "Pipeline — Elite Broker OS" };
 export const dynamic = "force-dynamic";
 
 export default async function PipelinePage() {

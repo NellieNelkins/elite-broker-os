@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { getDashboardKPIs, getFunnelStages } from "@/lib/queries";
 import { DashboardView } from "./dashboard-view";
 
+export const metadata: Metadata = { title: "Dashboard — Elite Broker OS" };
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {

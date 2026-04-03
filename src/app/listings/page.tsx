@@ -1,6 +1,8 @@
+import type { Metadata } from "next";
 import { getListings } from "@/lib/queries";
 import { ListingsView } from "./listings-view";
 
+export const metadata: Metadata = { title: "Listings — Elite Broker OS" };
 export const dynamic = "force-dynamic";
 
 export default async function ListingsPage() {

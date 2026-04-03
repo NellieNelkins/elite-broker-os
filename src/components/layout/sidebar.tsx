@@ -126,7 +126,12 @@ export function Sidebar() {
           <Settings size={16} strokeWidth={1.5} />
           Settings
         </Link>
-        <button className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--red)]">
+        <button
+          onClick={() => {
+            window.location.href = "/api/auth/signout";
+          }}
+          className="flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2 text-sm text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--red)]"
+        >
           <LogOut size={16} strokeWidth={1.5} />
           Sign Out
         </button>

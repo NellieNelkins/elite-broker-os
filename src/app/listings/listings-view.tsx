@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Eye, Clock } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { CreateListingModal } from "./create-listing-modal";
 
 interface ListingRow {
   id: string;
@@ -27,6 +30,8 @@ interface ListingsViewProps {
 }
 
 export function ListingsView({ listings }: ListingsViewProps) {
+  const [showCreate, setShowCreate] = useState(false);
+  const router = useRouter();
   const activeCount = listings.filter((l) => l.status === "Active").length;
 
   return (
@@ -36,7 +41,7 @@ export function ListingsView({ listings }: ListingsViewProps) {
           <h2 className="text-xl font-semibold text-[var(--text-gold)]">Listings</h2>
           <p className="text-sm text-[var(--text-muted)]">{activeCount} active properties</p>
         </div>
-        <Button size="md"><Plus size={16} /> Add Listing</Button>
+        <Button size="md" onClick={() => setShowCreate(true)}><Plus size={16} /> Add Listing</Button>
       </div>
 
       {listings.length === 0 ? (
@@ -77,6 +82,13 @@ export function ListingsView({ listings }: ListingsViewProps) {
             </Card>
           ))}
         </div>
+      )}
+      {showCreate && (
+        <CreateListingModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); router.refresh(); }}
+        />
       )}
     </div>
   );

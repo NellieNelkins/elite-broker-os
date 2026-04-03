@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, MoreHorizontal, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { CreateDealModal } from "./create-deal-modal";
 
 interface DealCard {
   id: string;
@@ -63,6 +66,8 @@ interface PipelineViewProps {
 }
 
 export function PipelineView({ stages, totalValue, totalCommission }: PipelineViewProps) {
+  const [showCreate, setShowCreate] = useState(false);
+  const router = useRouter();
   const totalDeals = stages.reduce((sum, s) => sum + s.deals.length, 0);
 
   return (
@@ -74,7 +79,7 @@ export function PipelineView({ stages, totalValue, totalCommission }: PipelineVi
             {totalDeals} deals &middot; {formatCurrency(totalValue)} total value &middot; {formatCurrency(totalCommission)} weighted commission
           </p>
         </div>
-        <Button size="md"><Plus size={16} /> Add Deal</Button>
+        <Button size="md" onClick={() => setShowCreate(true)}><Plus size={16} /> Add Deal</Button>
       </div>
 
       <div className="flex gap-4 overflow-x-auto pb-4">
@@ -106,6 +111,13 @@ export function PipelineView({ stages, totalValue, totalCommission }: PipelineVi
           </div>
         ))}
       </div>
+      {showCreate && (
+        <CreateDealModal
+          open={showCreate}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => { setShowCreate(false); router.refresh(); }}
+        />
+      )}
     </div>
   );
 }
