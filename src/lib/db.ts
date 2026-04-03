@@ -2,10 +2,11 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 
 function getConnectionString(): string {
+  // Prefer pooled connections (more reliable for serverless/Vercel)
   const url =
-    process.env.DATABASE_URL ||
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
     process.env.POSTGRES_URL_NON_POOLING;
 
   if (!url) {
