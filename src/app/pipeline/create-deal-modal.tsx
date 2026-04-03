@@ -13,6 +13,7 @@ interface CreateDealModalProps {
 
 export function CreateDealModal({ open, onClose, onCreated }: CreateDealModalProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [contactName, setContactName] = useState("");
   const [stage, setStage] = useState("Lead");
@@ -25,6 +26,7 @@ export function CreateDealModal({ open, onClose, onCreated }: CreateDealModalPro
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/pipeline", {
@@ -35,14 +37,18 @@ export function CreateDealModal({ open, onClose, onCreated }: CreateDealModalPro
           stage,
           value: value ? Number(value) : 0,
           commission: commission ? Number(commission) / 100 : 0.02,
+          probability: 0,
           community: community || undefined,
           notes: notes || undefined,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create deal");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to create deal (${res.status})`);
+      }
       onCreated();
-    } catch {
-      // stay open on error
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create deal");
     } finally {
       setLoading(false);
     }
@@ -113,6 +119,10 @@ export function CreateDealModal({ open, onClose, onCreated }: CreateDealModalPro
               placeholder="Additional notes..."
             />
           </div>
+
+          {error && (
+            <p className="rounded-lg bg-[var(--red)]/10 px-3 py-2 text-xs text-[var(--red)]">{error}</p>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>

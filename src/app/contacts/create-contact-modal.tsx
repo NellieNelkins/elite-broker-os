@@ -13,6 +13,7 @@ interface CreateContactModalProps {
 
 export function CreateContactModal({ open, onClose, onCreated }: CreateContactModalProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -26,6 +27,7 @@ export function CreateContactModal({ open, onClose, onCreated }: CreateContactMo
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setError("");
     setLoading(true);
     try {
       const res = await fetch("/api/contacts", {
@@ -42,10 +44,13 @@ export function CreateContactModal({ open, onClose, onCreated }: CreateContactMo
           notes: notes || undefined,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create contact");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to create contact (${res.status})`);
+      }
       onCreated();
-    } catch {
-      // stay open on error
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create contact");
     } finally {
       setLoading(false);
     }
@@ -126,6 +131,10 @@ export function CreateContactModal({ open, onClose, onCreated }: CreateContactMo
               placeholder="Additional notes..."
             />
           </div>
+
+          {error && (
+            <p className="rounded-lg bg-[var(--red)]/10 px-3 py-2 text-xs text-[var(--red)]">{error}</p>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>

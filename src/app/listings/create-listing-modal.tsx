@@ -13,6 +13,7 @@ interface CreateListingModalProps {
 
 export function CreateListingModal({ open, onClose, onCreated }: CreateListingModalProps) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [type, setType] = useState("Villa");
   const [price, setPrice] = useState("");
@@ -40,10 +41,13 @@ export function CreateListingModal({ open, onClose, onCreated }: CreateListingMo
           status,
         }),
       });
-      if (!res.ok) throw new Error("Failed to create listing");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Failed to create listing (${res.status})`);
+      }
       onCreated();
-    } catch {
-      // stay open on error
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create listing");
     } finally {
       setLoading(false);
     }
@@ -121,6 +125,10 @@ export function CreateListingModal({ open, onClose, onCreated }: CreateListingMo
               <option>Draft</option>
             </select>
           </div>
+
+          {error && (
+            <p className="rounded-lg bg-[var(--red)]/10 px-3 py-2 text-xs text-[var(--red)]">{error}</p>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
