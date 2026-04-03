@@ -1,8 +1,8 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
 function getConnectionString(): string {
-  // Prefer pooled connections (more reliable for serverless/Vercel)
   const url =
     process.env.POSTGRES_PRISMA_URL ||
     process.env.POSTGRES_URL ||
@@ -14,20 +14,25 @@ function getConnectionString(): string {
       "No database connection string found. Set DATABASE_URL, POSTGRES_PRISMA_URL, or POSTGRES_URL."
     );
   }
-  return url;
+
+  // Supabase pooler requires SSL
+  const parsed = new URL(url);
+  if (!parsed.searchParams.has("sslmode")) {
+    parsed.searchParams.set("sslmode", "require");
+  }
+  return parsed.toString();
 }
 
 function createPrismaClient() {
   const connectionString = getConnectionString();
-
-  // Supabase pooler (Supavisor) requires SSL.
-  // Append sslmode=require if not already present.
-  const url = new URL(connectionString);
-  if (!url.searchParams.has("sslmode")) {
-    url.searchParams.set("sslmode", "require");
-  }
-
-  const adapter = new PrismaPg({ connectionString: url.toString() });
+  const pool = new pg.Pool({
+    connectionString,
+    max: 2,
+    idleTimeoutMillis: 20_000,
+    connectionTimeoutMillis: 15_000,
+    ssl: { rejectUnauthorized: false },
+  });
+  const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 }
 
