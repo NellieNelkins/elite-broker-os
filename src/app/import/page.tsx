@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Upload,
   FileSpreadsheet,
@@ -12,6 +13,11 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  CheckSquare,
+  Square,
+  Pencil,
+  Save,
+  MapPin,
 } from "lucide-react";
 
 type ImportStep = "upload" | "map" | "preview" | "result";
@@ -31,12 +37,16 @@ const contactFields = [
   { key: "stage", label: "Stage (Lead/Qualified/...)", required: false },
   { key: "priority", label: "Priority (HIGH/MEDIUM/LOW)", required: false },
   { key: "value", label: "Value (AED)", required: false },
-  { key: "community", label: "Community", required: false },
+  { key: "community", label: "Community / Area", required: false },
+  { key: "property", label: "Property / Building", required: false },
   { key: "propType", label: "Property Type", required: false },
   { key: "bedrooms", label: "Bedrooms", required: false },
   { key: "nationality", label: "Nationality", required: false },
   { key: "source", label: "Source", required: false },
   { key: "notes", label: "Notes", required: false },
+  { key: "location", label: "Location / Address", required: false },
+  { key: "city", label: "City", required: false },
+  { key: "country", label: "Country", required: false },
 ];
 
 export default function ImportPage() {
@@ -48,12 +58,14 @@ export default function ImportPage() {
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [editingRow, setEditingRow] = useState<number | null>(null);
+  const [editValues, setEditValues] = useState<Record<string, string>>({});
 
   const parseCSV = useCallback((text: string) => {
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
-    if (lines.length < 2) return { headers: [], rows: [] };
+    if (lines.length < 2) return { headers: [] as string[], rows: [] as Record<string, string>[] };
 
-    // Simple CSV parser (handles quoted fields)
     const parseLine = (line: string): string[] => {
       const result: string[] = [];
       let current = "";
@@ -85,37 +97,83 @@ export default function ImportPage() {
     return { headers: hdrs, rows: data };
   }, []);
 
-  const handleFile = useCallback(
-    (file: File) => {
-      setFileName(file.name);
+  const autoMap = useCallback((hdrs: string[]) => {
+    const map: Record<string, string> = {};
+    const aliases: Record<string, string[]> = {
+      name: ["name", "fullname", "full_name", "contactname", "contact"],
+      phone: ["phone", "mobile", "cell", "telephone", "tel", "phonenumber", "phone1"],
+      email: ["email", "mail", "emailaddress"],
+      type: ["type", "contacttype", "category"],
+      stage: ["stage", "status", "dealstage"],
+      priority: ["priority", "urgency", "level"],
+      value: ["value", "budget", "amount", "dealvalue", "price"],
+      community: ["community", "area", "district", "zone", "neighborhood", "neighbourhood"],
+      property: ["property", "building", "project", "tower", "propertyname"],
+      propType: ["proptype", "propertytype", "unittype"],
+      bedrooms: ["bedrooms", "beds", "br", "bedroom"],
+      nationality: ["nationality", "nation", "country_of_origin"],
+      source: ["source", "leadsource", "origin", "channel"],
+      notes: ["notes", "comments", "remarks", "description"],
+      location: ["location", "address", "fulladdress", "streetaddress", "street"],
+      city: ["city", "town", "emirate"],
+      country: ["country", "countryname"],
+    };
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const text = e.target?.result as string;
-        const { headers: hdrs, rows: data } = parseCSV(text);
-        setHeaders(hdrs);
-        setRows(data);
+    for (const field of contactFields) {
+      const fieldAliases = aliases[field.key] || [field.key];
+      const match = hdrs.find((h) => {
+        const normalized = h.toLowerCase().replace(/[_\s\-.]/g, "");
+        return fieldAliases.some((a) => normalized === a || normalized.includes(a));
+      });
+      if (match) map[field.key] = match;
+    }
+    return map;
+  }, []);
 
-        // Auto-map columns by name similarity
-        const autoMap: Record<string, string> = {};
-        for (const field of contactFields) {
-          const match = hdrs.find(
-            (h) =>
-              h.toLowerCase().replace(/[_\s-]/g, "") ===
-              field.key.toLowerCase().replace(/[_\s-]/g, "")
-          ) || hdrs.find(
-            (h) =>
-              h.toLowerCase().includes(field.key.toLowerCase()) ||
-              field.key.toLowerCase().includes(h.toLowerCase().replace(/[_\s-]/g, ""))
-          );
-          if (match) autoMap[field.key] = match;
-        }
-        setMapping(autoMap);
-        setStep("map");
-      };
-      reader.readAsText(file);
+  const processFileData = useCallback(
+    (hdrs: string[], data: Record<string, string>[]) => {
+      setHeaders(hdrs);
+      setRows(data);
+      setMapping(autoMap(hdrs));
+      // Select all rows by default
+      setSelected(new Set(data.map((_, i) => i)));
+      setStep("map");
     },
-    [parseCSV]
+    [autoMap]
+  );
+
+  const handleFile = useCallback(
+    async (file: File) => {
+      setFileName(file.name);
+      const ext = file.name.split(".").pop()?.toLowerCase();
+
+      if (ext === "xlsx" || ext === "xls") {
+        // Dynamic import xlsx to keep bundle small
+        const XLSX = await import("xlsx");
+        const buffer = await file.arrayBuffer();
+        const workbook = XLSX.read(buffer, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, {
+          defval: "",
+          raw: false,
+        });
+
+        if (jsonData.length === 0) return;
+        const hdrs = Object.keys(jsonData[0]);
+        processFileData(hdrs, jsonData);
+      } else {
+        // CSV / TXT
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const text = e.target?.result as string;
+          const { headers: hdrs, rows: data } = parseCSV(text);
+          processFileData(hdrs, data);
+        };
+        reader.readAsText(file);
+      }
+    },
+    [parseCSV, processFileData]
   );
 
   const handleDrop = useCallback(
@@ -123,7 +181,13 @@ export default function ImportPage() {
       e.preventDefault();
       setDragOver(false);
       const file = e.dataTransfer.files[0];
-      if (file && (file.name.endsWith(".csv") || file.name.endsWith(".txt"))) {
+      if (
+        file &&
+        (file.name.endsWith(".csv") ||
+          file.name.endsWith(".txt") ||
+          file.name.endsWith(".xlsx") ||
+          file.name.endsWith(".xls"))
+      ) {
         handleFile(file);
       }
     },
@@ -138,15 +202,72 @@ export default function ImportPage() {
     [handleFile]
   );
 
+  // Select all / deselect all
+  const toggleSelectAll = () => {
+    if (selected.size === rows.length) {
+      setSelected(new Set());
+    } else {
+      setSelected(new Set(rows.map((_, i) => i)));
+    }
+  };
+
+  const toggleSelect = (index: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
+
+  // Inline editing
+  const startEdit = (index: number) => {
+    const row = rows[index];
+    const vals: Record<string, string> = {};
+    for (const field of contactFields) {
+      if (mapping[field.key]) {
+        vals[field.key] = row[mapping[field.key]] || "";
+      }
+    }
+    setEditValues(vals);
+    setEditingRow(index);
+  };
+
+  const saveEdit = () => {
+    if (editingRow === null) return;
+    setRows((prev) => {
+      const updated = [...prev];
+      const row = { ...updated[editingRow] };
+      for (const field of contactFields) {
+        if (mapping[field.key] && editValues[field.key] !== undefined) {
+          row[mapping[field.key]] = editValues[field.key];
+        }
+      }
+      updated[editingRow] = row;
+      return updated;
+    });
+    setEditingRow(null);
+    setEditValues({});
+  };
+
+  const cancelEdit = () => {
+    setEditingRow(null);
+    setEditValues({});
+  };
+
   const runImport = async () => {
     if (!mapping.name || !mapping.phone) return;
+
+    // Only import selected rows
+    const selectedRows = rows.filter((_, i) => selected.has(i));
+    if (selectedRows.length === 0) return;
 
     setImporting(true);
     try {
       const res = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rows, mapping, type: "contacts" }),
+        body: JSON.stringify({ rows: selectedRows, mapping, type: "contacts" }),
       });
       const data = await res.json();
       setResult(data);
@@ -155,7 +276,7 @@ export default function ImportPage() {
       setResult({
         imported: 0,
         skipped: 0,
-        total: rows.length,
+        total: selectedRows.length,
         errors: ["Network error — please try again"],
       });
       setStep("result");
@@ -170,7 +291,13 @@ export default function ImportPage() {
     setRows([]);
     setMapping({});
     setResult(null);
+    setSelected(new Set());
+    setEditingRow(null);
+    setEditValues({});
   };
+
+  // Get mapped fields that have a column assigned (for preview table)
+  const mappedFields = contactFields.filter((f) => mapping[f.key]);
 
   return (
     <div className="animate-fade-in space-y-5">
@@ -179,26 +306,28 @@ export default function ImportPage() {
           Import Data
         </h2>
         <p className="text-sm text-[var(--text-muted)]">
-          Import contacts from CSV or Excel exports
+          Import contacts from CSV or Excel files
         </p>
       </div>
 
       {/* Step indicator */}
       <div className="flex items-center gap-3 text-xs text-[var(--text-muted)]">
-        {(["upload", "map", "preview", "result"] as ImportStep[]).map((s, i) => (
-          <div key={s} className="flex items-center gap-2">
-            {i > 0 && <ArrowRight size={12} />}
-            <span
-              className={
-                step === s
-                  ? "font-medium text-[var(--text-gold)]"
-                  : "text-[var(--text-muted)]"
-              }
-            >
-              {i + 1}. {s.charAt(0).toUpperCase() + s.slice(1)}
-            </span>
-          </div>
-        ))}
+        {(["upload", "map", "preview", "result"] as ImportStep[]).map(
+          (s, i) => (
+            <div key={s} className="flex items-center gap-2">
+              {i > 0 && <ArrowRight size={12} />}
+              <span
+                className={
+                  step === s
+                    ? "font-medium text-[var(--text-gold)]"
+                    : "text-[var(--text-muted)]"
+                }
+              >
+                {i + 1}. {s.charAt(0).toUpperCase() + s.slice(1)}
+              </span>
+            </div>
+          )
+        )}
       </div>
 
       {/* Upload step */}
@@ -223,15 +352,15 @@ export default function ImportPage() {
                 className="mb-4 text-[var(--text-muted)] opacity-50"
               />
               <p className="text-sm text-[var(--text-primary)]">
-                Drag & drop your CSV file here
+                Drag & drop your file here
               </p>
               <p className="mt-1 text-xs text-[var(--text-muted)]">
-                or click to browse
+                Supports CSV and Excel (.xlsx) files
               </p>
               <label className="mt-4 cursor-pointer">
                 <input
                   type="file"
-                  accept=".csv,.txt"
+                  accept=".csv,.txt,.xlsx,.xls"
                   onChange={handleFileInput}
                   className="hidden"
                 />
@@ -239,9 +368,17 @@ export default function ImportPage() {
                   <Upload size={16} /> Choose File
                 </span>
               </label>
-              <p className="mt-4 text-[10px] text-[var(--text-muted)]">
-                Supports CSV files. For Excel (.xlsx), save as CSV first.
-              </p>
+              <div className="mt-4 flex items-center gap-4 text-[10px] text-[var(--text-muted)]">
+                <span className="flex items-center gap-1">
+                  <FileSpreadsheet size={10} /> .csv
+                </span>
+                <span className="flex items-center gap-1">
+                  <FileSpreadsheet size={10} /> .xlsx
+                </span>
+                <span className="flex items-center gap-1">
+                  <FileSpreadsheet size={10} /> .xls
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -261,50 +398,106 @@ export default function ImportPage() {
           <CardContent className="space-y-3">
             <p className="text-xs text-[var(--text-muted)]">
               Match your file columns to contact fields. Name and Phone are
-              required.
+              required. Location fields map to your contact&apos;s area info.
             </p>
 
-            <div className="grid grid-cols-2 gap-3">
-              {contactFields.map((field) => (
-                <div
-                  key={field.key}
-                  className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-4 py-3"
-                >
-                  <div className="min-w-[140px]">
-                    <span className="text-sm text-[var(--text-primary)]">
-                      {field.label}
-                    </span>
-                    {field.required && (
-                      <span className="ml-1 text-[var(--red)]">*</span>
-                    )}
-                  </div>
-                  <ArrowRight size={12} className="text-[var(--text-muted)]" />
-                  <select
-                    value={mapping[field.key] || ""}
-                    onChange={(e) =>
-                      setMapping((prev) => ({
-                        ...prev,
-                        [field.key]: e.target.value,
-                      }))
-                    }
-                    className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
-                  >
-                    <option value="">— Skip —</option>
-                    {headers.map((h) => (
-                      <option key={h} value={h}>
-                        {h}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ))}
+            {/* Contact fields */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                Contact Info
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {contactFields
+                  .filter((f) => !["location", "city", "country"].includes(f.key))
+                  .map((field) => (
+                    <div
+                      key={field.key}
+                      className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-4 py-3"
+                    >
+                      <div className="min-w-[140px]">
+                        <span className="text-sm text-[var(--text-primary)]">
+                          {field.label}
+                        </span>
+                        {field.required && (
+                          <span className="ml-1 text-[var(--red)]">*</span>
+                        )}
+                      </div>
+                      <ArrowRight
+                        size={12}
+                        className="text-[var(--text-muted)]"
+                      />
+                      <select
+                        value={mapping[field.key] || ""}
+                        onChange={(e) =>
+                          setMapping((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }))
+                        }
+                        className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+                      >
+                        <option value="">— Skip —</option>
+                        {headers.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Location fields */}
+            <div>
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                <MapPin size={12} /> Location
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {contactFields
+                  .filter((f) => ["location", "city", "country"].includes(f.key))
+                  .map((field) => (
+                    <div
+                      key={field.key}
+                      className="flex items-center gap-3 rounded-lg bg-[var(--bg-elevated)] px-4 py-3"
+                    >
+                      <div className="min-w-[140px]">
+                        <span className="text-sm text-[var(--text-primary)]">
+                          {field.label}
+                        </span>
+                      </div>
+                      <ArrowRight
+                        size={12}
+                        className="text-[var(--text-muted)]"
+                      />
+                      <select
+                        value={mapping[field.key] || ""}
+                        onChange={(e) =>
+                          setMapping((prev) => ({
+                            ...prev,
+                            [field.key]: e.target.value,
+                          }))
+                        }
+                        className="flex-1 rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 py-1.5 text-sm text-[var(--text-primary)] outline-none"
+                      >
+                        <option value="">— Skip —</option>
+                        {headers.map((h) => (
+                          <option key={h} value={h}>
+                            {h}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-3">
               <div className="text-xs text-[var(--text-muted)]">
                 {mapping.name && mapping.phone ? (
                   <span className="text-[var(--green)]">
-                    Required fields mapped
+                    Required fields mapped &middot;{" "}
+                    {Object.values(mapping).filter(Boolean).length} fields total
                   </span>
                 ) : (
                   <span className="text-[var(--red)]">
@@ -328,7 +521,10 @@ export default function ImportPage() {
       {step === "preview" && (
         <Card>
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle>Preview — First 5 rows</CardTitle>
+            <div className="flex items-center gap-3">
+              <CardTitle>Preview — {rows.length} rows</CardTitle>
+              <Badge variant="green">{selected.size} selected</Badge>
+            </div>
             <div className="flex gap-2">
               <Button
                 variant="secondary"
@@ -337,67 +533,164 @@ export default function ImportPage() {
               >
                 Back
               </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={reset}
-              >
+              <Button variant="secondary" size="sm" onClick={reset}>
                 <X size={14} /> Cancel
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Select All bar */}
+            <div className="mb-3 flex items-center justify-between rounded-lg bg-[var(--bg-elevated)] px-4 py-2">
+              <button
+                onClick={toggleSelectAll}
+                className="flex items-center gap-2 text-sm text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+              >
+                {selected.size === rows.length ? (
+                  <CheckSquare
+                    size={16}
+                    className="text-[var(--text-gold)]"
+                  />
+                ) : (
+                  <Square size={16} />
+                )}
+                {selected.size === rows.length
+                  ? "Deselect All"
+                  : "Select All"}
+              </button>
+              <span className="text-xs text-[var(--text-muted)]">
+                {selected.size} of {rows.length} rows selected for import
+              </span>
+            </div>
+
+            <div className="max-h-[500px] overflow-auto rounded-lg border border-[var(--border-default)]">
               <table className="w-full text-sm">
-                <thead>
+                <thead className="sticky top-0 z-10 bg-[var(--bg-surface)]">
                   <tr className="border-b border-[var(--border-default)]">
-                    {contactFields
-                      .filter((f) => mapping[f.key])
-                      .map((f) => (
-                        <th
-                          key={f.key}
-                          className="px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)]"
-                        >
+                    <th className="w-10 px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)]">
+                      #
+                    </th>
+                    {mappedFields.map((f) => (
+                      <th
+                        key={f.key}
+                        className="px-3 py-2 text-left text-xs font-medium text-[var(--text-muted)]"
+                      >
+                        <span className="flex items-center gap-1">
+                          {["location", "city", "country"].includes(f.key) && (
+                            <MapPin size={10} />
+                          )}
                           {f.label}
-                        </th>
-                      ))}
+                        </span>
+                      </th>
+                    ))}
+                    <th className="w-20 px-3 py-2 text-right text-xs font-medium text-[var(--text-muted)]">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.slice(0, 5).map((row, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-[var(--border-default)]/50"
-                    >
-                      {contactFields
-                        .filter((f) => mapping[f.key])
-                        .map((f) => (
+                  {rows.map((row, i) => {
+                    const isSelected = selected.has(i);
+                    const isEditing = editingRow === i;
+
+                    return (
+                      <tr
+                        key={i}
+                        className={`border-b border-[var(--border-default)]/50 transition-colors ${
+                          isSelected
+                            ? "bg-[var(--bg-surface)]"
+                            : "bg-[var(--bg-deep)] opacity-50"
+                        } ${isEditing ? "ring-1 ring-[var(--gold-500)]" : ""}`}
+                      >
+                        <td className="px-3 py-2">
+                          <button
+                            onClick={() => toggleSelect(i)}
+                            className="text-[var(--text-muted)] transition-colors hover:text-[var(--text-primary)]"
+                          >
+                            {isSelected ? (
+                              <CheckSquare
+                                size={14}
+                                className="text-[var(--text-gold)]"
+                              />
+                            ) : (
+                              <Square size={14} />
+                            )}
+                          </button>
+                        </td>
+                        {mappedFields.map((f) => (
                           <td
                             key={f.key}
                             className="px-3 py-2 text-[var(--text-primary)]"
                           >
-                            {row[mapping[f.key]] || "—"}
+                            {isEditing ? (
+                              <Input
+                                value={editValues[f.key] || ""}
+                                onChange={(e) =>
+                                  setEditValues((prev) => ({
+                                    ...prev,
+                                    [f.key]: e.target.value,
+                                  }))
+                                }
+                                className="h-7 text-xs"
+                              />
+                            ) : (
+                              <span className="text-xs">
+                                {row[mapping[f.key]] || "—"}
+                              </span>
+                            )}
                           </td>
                         ))}
-                    </tr>
-                  ))}
+                        <td className="px-3 py-2 text-right">
+                          {isEditing ? (
+                            <div className="flex justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={saveEdit}
+                              >
+                                <Save size={12} />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={cancelEdit}
+                              >
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => startEdit(i)}
+                            >
+                              <Pencil size={12} />
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             <div className="mt-4 flex items-center justify-between">
               <p className="text-xs text-[var(--text-muted)]">
-                {rows.length} total rows will be imported. Duplicates (same
+                {selected.size} rows selected for import. Duplicates (same
                 phone) will be skipped.
               </p>
-              <Button size="md" onClick={runImport} disabled={importing}>
+              <Button
+                size="md"
+                onClick={runImport}
+                disabled={importing || selected.size === 0}
+              >
                 {importing ? (
                   <>
                     <Loader2 size={16} className="animate-spin" /> Importing...
                   </>
                 ) : (
                   <>
-                    <Upload size={16} /> Import {rows.length} Contacts
+                    <Upload size={16} /> Import {selected.size} Contacts
                   </>
                 )}
               </Button>

@@ -48,6 +48,21 @@ export async function POST(req: NextRequest) {
           continue;
         }
 
+        // Build notes with location info if mapped
+        const noteParts: string[] = [];
+        if (mapping.notes && row[mapping.notes]?.toString().trim()) {
+          noteParts.push(row[mapping.notes].toString().trim());
+        }
+        if (mapping.location && row[mapping.location]?.toString().trim()) {
+          noteParts.push(`Location: ${row[mapping.location].toString().trim()}`);
+        }
+        if (mapping.city && row[mapping.city]?.toString().trim()) {
+          noteParts.push(`City: ${row[mapping.city].toString().trim()}`);
+        }
+        if (mapping.country && row[mapping.country]?.toString().trim()) {
+          noteParts.push(`Country: ${row[mapping.country].toString().trim()}`);
+        }
+
         await prisma.contact.create({
           data: {
             userId: user.id,
@@ -59,11 +74,12 @@ export async function POST(req: NextRequest) {
             priority: mapping.priority ? (row[mapping.priority]?.toString().trim() || "MEDIUM") : "MEDIUM",
             value: mapping.value ? parseFloat(row[mapping.value]) || 0 : 0,
             community: mapping.community ? row[mapping.community]?.toString().trim() || undefined : undefined,
+            property: mapping.property ? row[mapping.property]?.toString().trim() || undefined : undefined,
             propType: mapping.propType ? row[mapping.propType]?.toString().trim() || undefined : undefined,
             bedrooms: mapping.bedrooms ? row[mapping.bedrooms]?.toString().trim() || undefined : undefined,
             nationality: mapping.nationality ? row[mapping.nationality]?.toString().trim() || undefined : undefined,
             source: mapping.source ? row[mapping.source]?.toString().trim() || "Excel" : "Excel",
-            notes: mapping.notes ? row[mapping.notes]?.toString().trim() || undefined : undefined,
+            notes: noteParts.length > 0 ? noteParts.join(" | ") : undefined,
           },
         });
         imported++;
