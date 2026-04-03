@@ -15,11 +15,13 @@ function getConnectionString(): string {
     );
   }
 
-  // Supabase pooler requires SSL
+  // Remove sslmode from URL — we configure SSL via pg.Pool options instead.
+  // Newer pg versions treat sslmode=require as verify-full, which rejects
+  // Supabase's self-signed certificates. By stripping it here and using
+  // ssl: { rejectUnauthorized: false } on the Pool, we get encrypted
+  // connections without certificate chain validation.
   const parsed = new URL(url);
-  if (!parsed.searchParams.has("sslmode")) {
-    parsed.searchParams.set("sslmode", "require");
-  }
+  parsed.searchParams.delete("sslmode");
   return parsed.toString();
 }
 
