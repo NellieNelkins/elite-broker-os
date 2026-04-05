@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Bell, Wifi, Clock, TrendingUp, UserCheck, X } from "lucide-react";
+import { Bell, Wifi, Clock, TrendingUp, UserCheck, X, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SearchPalette } from "./search-palette";
@@ -114,7 +114,14 @@ export function Header() {
   const displayCount = dismissed ? 0 : count;
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-[var(--border-default)] bg-[var(--bg-deep)]/80 px-6 backdrop-blur-md">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-3 border-b border-[var(--border-default)] bg-[var(--bg-deep)]/80 px-4 backdrop-blur-md md:px-6">
+      <button
+        onClick={() => window.dispatchEvent(new Event("mobile-nav-open"))}
+        className="rounded p-1.5 text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] md:hidden"
+        aria-label="Open navigation"
+      >
+        <Menu size={18} />
+      </button>
       {/* Global Search */}
       <SearchPalette />
 

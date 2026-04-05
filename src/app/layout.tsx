@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { KeyboardShortcuts } from "@/components/layout/keyboard-shortcuts";
 import { Toaster } from "sonner";
 import "./globals.css";
 
@@ -27,8 +28,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full bg-[var(--bg-deepest)]">
+        <KeyboardShortcuts />
         <Sidebar />
-        <div className="ml-60 flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col md:ml-60">
           <Header />
           <main className="flex-1 px-6 py-5">{children}</main>
         </div>

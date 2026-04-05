@@ -104,7 +104,7 @@ export function SearchPalette() {
       {/* Trigger button in header */}
       <button
         onClick={() => setOpen(true)}
-        className="relative flex h-8 w-72 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)]"
+        className="relative flex h-8 w-full max-w-72 flex-1 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-muted)] transition-colors hover:bg-[var(--bg-hover)] md:w-72 md:flex-initial"
       >
         <Search size={14} />
         <span>Search contacts, deals, listings...</span>

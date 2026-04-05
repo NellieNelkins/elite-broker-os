@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -23,6 +24,9 @@ import {
   Clock,
   Bell,
   Upload,
+  FileText,
+  CalendarDays,
+  FolderLock,
 } from "lucide-react";
 
 const navItems = [
@@ -32,7 +36,9 @@ const navItems = [
   { label: "Listings", href: "/listings", icon: Building2 },
   { label: "Discipline", href: "/coach", icon: Target },
   { label: "Forecast", href: "/dashboard/forecast", icon: BarChart3 },
+  { label: "Analytics", href: "/analytics", icon: BarChart3 },
   { label: "WhatsApp", href: "/whatsapp", icon: MessageSquare },
+  { label: "Viewings", href: "/viewings", icon: CalendarDays },
   { label: "Reminders", href: "/reminders", icon: Bell },
   { label: "Activity", href: "/activity", icon: Clock },
   { label: "Market", href: "/market", icon: Briefcase },
@@ -45,14 +51,44 @@ const toolItems = [
   { label: "AI Agents", href: "/dashboard/agents", icon: Bot },
   { label: "Coach", href: "/coach", icon: Brain },
   { label: "Calculator", href: "/calculator", icon: Calculator },
+  { label: "RERA Forms", href: "/forms", icon: FileText },
+  { label: "Documents", href: "/documents", icon: FolderLock },
   { label: "Import Data", href: "/import", icon: Upload },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    const open = () => setMobileOpen(true);
+    const close = () => setMobileOpen(false);
+    window.addEventListener("mobile-nav-open", open);
+    window.addEventListener("mobile-nav-close", close);
+    return () => {
+      window.removeEventListener("mobile-nav-open", open);
+      window.removeEventListener("mobile-nav-close", close);
+    };
+  }, []);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-[var(--border-default)] bg-[var(--bg-deep)]">
+    <>
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-30 bg-black/60 md:hidden"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+    <aside
+      className={cn(
+        "fixed left-0 top-0 z-40 flex h-screen w-60 flex-col border-r border-[var(--border-default)] bg-[var(--bg-deep)] transition-transform duration-200 md:translate-x-0",
+        mobileOpen ? "translate-x-0" : "-translate-x-full",
+      )}
+    >
       {/* Brand */}
       <div className="flex h-16 items-center gap-3 border-b border-[var(--border-default)] px-5">
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--gold-500)] to-[var(--gold-700)]">
@@ -137,5 +173,6 @@ export function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }
