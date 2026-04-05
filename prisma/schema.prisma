@@ -23,6 +23,8 @@ model User {
   listings      Listing[]
   campaigns     Campaign[]
   activities    Activity[]
+  viewings      Viewing[]
+  documents     Document[]
   coachSessions CoachSession[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -107,6 +109,7 @@ model Deal {
   id          String   @id @default(cuid())
   userId      String
   contactId   String?
+  listingId   String?
   name        String
   stage       String   @default("Lead")
   value       Float    @default(0)
@@ -117,14 +120,74 @@ model Deal {
   nextAction  String?
   nextDate    DateTime?
   notes       String?
+
+  // Transaction milestones (Dubai deal flow)
+  offerAcceptedAt    DateTime?
+  mouSignedAt        DateTime?
+  depositPaidAt      DateTime?
+  nocReceivedAt      DateTime?
+  trusteeBookedAt    DateTime?
+  trusteeDate        DateTime?
+  transferredAt      DateTime?
+  keysHandedAt       DateTime?
+
+  // Commission split tracking (JSON array of {name, role, pct, amount})
+  commissionSplits   Json?
+  netCommission      Float   @default(0)
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   contact     Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
   activities  Activity[]
+  viewings    Viewing[]
+  documents   Document[]
 
   @@index([userId, stage])
+}
+
+model Viewing {
+  id          String   @id @default(cuid())
+  userId      String
+  contactId   String?
+  listingId   String?
+  dealId      String?
+  scheduledAt DateTime
+  duration    Int      @default(30) // minutes
+  status      String   @default("scheduled") // scheduled, completed, cancelled, no_show
+  location    String?
+  notes       String?
+  feedback    String?  // Post-viewing feedback
+  rating      Int?     // 1-5 interest level from buyer
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, scheduledAt])
+  @@index([userId, status])
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  userId      String
+  contactId   String?
+  dealId      String?
+  listingId   String?
+  name        String
+  type        String   // passport, emirates_id, title_deed, ejari, mou, form_a, form_f, noc, other
+  url         String
+  size        Int      @default(0) // bytes
+  mimeType    String?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deal        Deal?    @relation(fields: [dealId], references: [id], onDelete: SetNull)
+
+  @@index([userId, type])
+  @@index([dealId])
 }
 
 model Listing {
