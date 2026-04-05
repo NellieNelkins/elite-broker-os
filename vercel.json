@@ -2,5 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm exec prisma generate && pnpm build",
   "framework": "nextjs",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "crons": [
+    {
+      "path": "/api/market/refresh",
+      "schedule": "0 3 * * *"
+    }
+  ]
 }

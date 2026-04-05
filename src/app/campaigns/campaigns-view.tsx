@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Send, Users, BarChart3 } from "lucide-react";
+import { Plus, Send, Users, BarChart3, Settings2, Play, Pause } from "lucide-react";
+import { toast } from "sonner";
 import CreateCampaignModal from "./create-campaign-modal";
+import { ManageCampaignModal } from "./manage-campaign-modal";
 
 interface CampaignData {
   id: string;
@@ -46,7 +48,22 @@ export default function CampaignsView({
   totals: CampaignTotals;
 }) {
   const [showModal, setShowModal] = useState(false);
+  const [managing, setManaging] = useState<CampaignData | null>(null);
   const router = useRouter();
+
+  async function quickAction(id: string, action: string, label: string) {
+    const res = await fetch("/api/campaigns", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, action }),
+    });
+    if (res.ok) {
+      toast.success(`Campaign ${label}`);
+      router.refresh();
+    } else {
+      toast.error("Action failed");
+    }
+  }
 
   return (
     <div className="animate-fade-in space-y-5">
@@ -144,11 +161,47 @@ export default function CampaignsView({
                 >
                   {c.status.replace("_", " ")}
                 </Badge>
+                <div className="flex items-center gap-1">
+                  {c.status === "draft" && (
+                    <button
+                      onClick={() => quickAction(c.id, "launch", "launched")}
+                      className="rounded p-1.5 text-[var(--green)] hover:bg-[var(--bg-elevated)]"
+                      title="Launch"
+                    ><Play size={14} /></button>
+                  )}
+                  {c.status === "in_progress" && (
+                    <button
+                      onClick={() => quickAction(c.id, "pause", "paused")}
+                      className="rounded p-1.5 text-[var(--amber)] hover:bg-[var(--bg-elevated)]"
+                      title="Pause"
+                    ><Pause size={14} /></button>
+                  )}
+                  {c.status === "paused" && (
+                    <button
+                      onClick={() => quickAction(c.id, "resume", "resumed")}
+                      className="rounded p-1.5 text-[var(--green)] hover:bg-[var(--bg-elevated)]"
+                      title="Resume"
+                    ><Play size={14} /></button>
+                  )}
+                  <button
+                    onClick={() => setManaging(c)}
+                    className="rounded p-1.5 text-[var(--text-muted)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text-primary)]"
+                    title="Manage"
+                  ><Settings2 size={14} /></button>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      {managing && (
+        <ManageCampaignModal
+          campaign={managing}
+          onClose={() => setManaging(null)}
+          onChanged={() => { setManaging(null); router.refresh(); }}
+        />
+      )}
 
       {showModal && (
         <CreateCampaignModal

@@ -1,74 +1,158 @@
-"use client";
-
-import { Card, CardHeader, CardTitle, CardContent, CardValue } from "@/components/ui/card";
+import { prisma } from "@/lib/db";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Building2, MapPin } from "lucide-react";
+import { MapPin, TrendingUp, Home as HomeIcon, Clock } from "lucide-react";
+import Link from "next/link";
+import type { Metadata } from "next";
+import { RefreshMarketButton } from "./refresh-button";
 
-const communities = [
-  { name: "The Springs", avg: 2800000, change: 5.2, transactions: 34, type: "Villa/TH" },
-  { name: "The Meadows", avg: 4200000, change: 3.8, transactions: 18, type: "Villa" },
-  { name: "Arabian Ranches", avg: 5500000, change: 7.1, transactions: 26, type: "Villa" },
-  { name: "Emirates Hills", avg: 18000000, change: -1.2, transactions: 8, type: "Villa" },
-  { name: "Palm Jumeirah", avg: 8500000, change: 4.5, transactions: 42, type: "Apt/Villa" },
-  { name: "Dubai Marina", avg: 3200000, change: 6.3, transactions: 58, type: "Apartment" },
-  { name: "Downtown Dubai", avg: 4800000, change: 2.9, transactions: 45, type: "Apartment" },
-  { name: "JBR", avg: 3800000, change: -0.5, transactions: 22, type: "Apartment" },
-];
+export const metadata: Metadata = { title: "Market Insights — Elite Broker OS" };
+export const dynamic = "force-dynamic";
 
-export default function MarketPage() {
+function fmt(n: number) {
+  return new Intl.NumberFormat("en-AE", { style: "currency", currency: "AED", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
+}
+
+function tierVariant(tier: string): "green" | "amber" | "default" {
+  return tier === "priority" ? "green" : tier === "premium" ? "amber" : "default";
+}
+
+function tierLabel(tier: string): string {
+  return tier === "priority" ? "Priority" : tier === "premium" ? "Premium" : "Standard";
+}
+
+export default async function MarketPage() {
+  const communities = await prisma.community.findMany({
+    orderBy: [{ tier: "asc" }, { name: "asc" }],
+  });
+
+  const priorityCount = communities.filter(c => c.tier === "priority").length;
+  const lastRefresh = communities[0]?.lastRefreshedAt;
+
   return (
     <div className="animate-fade-in space-y-5">
-      <div>
-        <h2 className="text-xl font-semibold text-[var(--text-gold)]">Market Insights</h2>
-        <p className="text-sm text-[var(--text-muted)]">Dubai real estate market data — Emirates Living & key communities</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-[var(--text-gold)]">Market Insights</h1>
+          <p className="text-sm text-[var(--text-muted)]">
+            Expert community data sourced from PropertyMonitor, DXBInteract, Bayut, PropertyFinder, DLD
+          </p>
+        </div>
+        <RefreshMarketButton />
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        <Card><CardHeader><CardTitle>Avg. Price (Villas)</CardTitle></CardHeader><CardContent><CardValue className="text-[var(--text-gold)]">AED 5.2M</CardValue><p className="mt-1 text-xs text-[var(--green)]">+4.8% YoY</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Avg. Price (Apts)</CardTitle></CardHeader><CardContent><CardValue className="text-[var(--blue)]">AED 3.1M</CardValue><p className="mt-1 text-xs text-[var(--green)]">+3.2% YoY</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Total Transactions</CardTitle></CardHeader><CardContent><CardValue className="text-[var(--violet)]">253</CardValue><p className="mt-1 text-xs text-[var(--text-muted)]">This month</p></CardContent></Card>
-        <Card><CardHeader><CardTitle>Avg. Days to Sell</CardTitle></CardHeader><CardContent><CardValue className="text-[var(--amber)]">38</CardValue><p className="mt-1 text-xs text-[var(--green)]">-5 days vs last month</p></CardContent></Card>
-      </div>
+      {communities.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-sm text-[var(--text-muted)]">
+              No community data yet. Run the refresh below or hit{" "}
+              <code className="rounded bg-[var(--bg-elevated)] px-1.5 py-0.5 text-xs">/api/market/refresh</code>
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card>
-        <CardHeader><CardTitle>Community Performance</CardTitle></CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[var(--border-default)]">
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--text-muted)]">Community</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium uppercase text-[var(--text-muted)]">Type</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--text-muted)]">Avg. Price</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--text-muted)]">Change</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium uppercase text-[var(--text-muted)]">Transactions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {communities.map((c) => (
-                  <tr key={c.name} className="border-b border-[var(--border-subtle)] transition-colors hover:bg-[var(--bg-hover)]">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <MapPin size={14} className="text-[var(--text-gold)]" />
-                        <span className="text-sm font-medium text-[var(--text-primary)]">{c.name}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3"><Badge variant="default">{c.type}</Badge></td>
-                    <td className="px-4 py-3 text-right font-mono text-sm text-[var(--text-gold)]">AED {(c.avg / 1000000).toFixed(1)}M</td>
-                    <td className="px-4 py-3 text-right">
-                      <span className={`inline-flex items-center gap-1 text-sm font-medium ${c.change >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>
-                        {c.change >= 0 ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
-                        {c.change >= 0 ? "+" : ""}{c.change}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono text-sm text-[var(--text-secondary)]">{c.transactions}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {communities.length > 0 && (
+        <>
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-[var(--text-muted)]">Communities Tracked</p>
+                <p className="mt-1 font-mono text-2xl font-semibold text-[var(--text-gold)]">{communities.length}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-[var(--text-muted)]">Priority Villa Communities</p>
+                <p className="mt-1 font-mono text-2xl font-semibold text-[var(--green)]">{priorityCount}</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-[var(--text-muted)]">Avg Yield (Priority)</p>
+                <p className="mt-1 font-mono text-2xl font-semibold text-[var(--blue)]">
+                  {(communities.filter(c => c.tier === "priority").reduce((s, c) => s + c.avgYield, 0) / (priorityCount || 1)).toFixed(1)}%
+                </p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="pt-4">
+                <p className="text-xs text-[var(--text-muted)]">Last Refresh</p>
+                <p className="mt-1 text-sm font-semibold text-[var(--text-primary)]">
+                  {lastRefresh ? new Date(lastRefresh).toLocaleString("en-AE", { dateStyle: "medium", timeStyle: "short" }) : "Never"}
+                </p>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {(["priority", "premium", "standard"] as const).map(tier => {
+            const tierCommunities = communities.filter(c => c.tier === tier);
+            if (tierCommunities.length === 0) return null;
+            return (
+              <div key={tier} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[var(--text-secondary)]">{tierLabel(tier)} Communities</h2>
+                  <Badge variant={tierVariant(tier)}>{tierCommunities.length}</Badge>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {tierCommunities.map(c => (
+                    <Card key={c.id} className="transition-all hover:border-[var(--border-gold)]">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-[var(--text-primary)]">{c.name}</CardTitle>
+                            <p className="mt-1 flex items-center gap-1 text-xs text-[var(--text-muted)]">
+                              <MapPin size={11} /> {c.developer || "—"} · {c.handover || "—"}
+                            </p>
+                          </div>
+                          <Badge variant={tierVariant(c.tier)}>{tierLabel(c.tier)}</Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <p className="text-xs leading-relaxed text-[var(--text-muted)] line-clamp-3">{c.description}</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="rounded-md bg-[var(--bg-elevated)] p-2">
+                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg PSF</p>
+                            <p className="font-mono text-sm font-semibold text-[var(--text-gold)]">AED {c.avgPricePerSqft.toLocaleString()}</p>
+                          </div>
+                          <div className="rounded-md bg-[var(--bg-elevated)] p-2">
+                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg Yield</p>
+                            <p className="font-mono text-sm font-semibold text-[var(--blue)]">{c.avgYield.toFixed(1)}%</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="flex items-center gap-1 text-[var(--text-muted)]"><HomeIcon size={11} />{c.propertyTypes}</span>
+                          <span className="flex items-center gap-1 text-[var(--text-muted)]"><TrendingUp size={11} />{fmt(c.minPrice)} - {fmt(c.maxPrice)}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          <Card>
+            <CardContent className="py-4">
+              <div className="flex items-start gap-2 text-xs text-[var(--text-muted)]">
+                <Clock size={14} className="mt-0.5 shrink-0 text-[var(--text-gold)]" />
+                <div className="space-y-1">
+                  <p className="font-medium text-[var(--text-secondary)]">Daily refresh at 03:00 UTC via Vercel Cron.</p>
+                  <p>
+                    Live ingestion hooks for PropertyMonitor, DXBInteract, PropertyFinder, Bayut, and DLD are wired in{" "}
+                    <code className="rounded bg-[var(--bg-elevated)] px-1 py-0.5">src/lib/market-sources/</code>.
+                    Set API keys (<code>PROPERTY_MONITOR_API_KEY</code>, <code>DLD_API_TOKEN</code>, etc.) in Vercel env to enable live data.
+                    Baseline expert data always available from seed.
+                  </p>
+                  <p className="pt-1">
+                    <Link href="/dashboard/agents" className="text-[var(--text-gold)] hover:underline">Configure Community Expert agent →</Link>
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }

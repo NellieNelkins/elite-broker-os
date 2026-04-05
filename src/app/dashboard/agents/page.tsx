@@ -13,6 +13,7 @@ import {
   MessageSquareText,
   BarChart3,
   Bot,
+  MapPin,
   Settings2,
   Sparkles,
   X,
@@ -96,6 +97,20 @@ const agents: AgentConfig[] = [
     ],
   },
   {
+    id: "community-expert",
+    name: "Community Expert",
+    description: "Expert on Dubai villa communities — Emirates Living, Jumeirah Park, Arabian Ranches priority. Pulls daily market data from PropertyMonitor, DXBInteract, Bayut, PropertyFinder, DLD.",
+    icon: MapPin,
+    defaultActive: true,
+    stat: "18 communities tracked",
+    settings: [
+      { label: "Priority Communities", key: "priorityCommunities", type: "text", default: "Emirates Living, Jumeirah Park, Arabian Ranches" },
+      { label: "Data Refresh", key: "refreshFreq", type: "select", options: ["Daily", "Twice Daily", "Weekly"], default: "Daily" },
+      { label: "Property Type Focus", key: "typeFocus", type: "select", options: ["Villas Only", "Villas + Townhouses", "All Types"], default: "Villas + Townhouses" },
+      { label: "Primary Data Source", key: "primarySource", type: "select", options: ["DLD (Official)", "Property Monitor", "DXB Interact", "All Sources Blended"], default: "All Sources Blended" },
+    ],
+  },
+  {
     id: "deal-analyzer",
     name: "Deal Analyzer",
     description: "Predicts deal close probability and suggests next actions",
@@ -150,7 +165,7 @@ export default function AgentsPage() {
         <div className="flex items-center gap-2">
           <Bot size={22} className="text-[var(--text-gold)]" />
           <h1 className="text-xl font-semibold text-[var(--text-gold)]">
-            6 AI Agents
+            7 AI Agents
           </h1>
         </div>
         <Badge variant="green">{activeCount} Active</Badge>

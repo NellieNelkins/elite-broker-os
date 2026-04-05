@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Calculator as CalcIcon,
   Percent,
   Home,
   TrendingUp,
@@ -14,6 +13,7 @@ import {
   Building2,
   Plus,
   Minus,
+  LineChart,
 } from "lucide-react";
 
 function fmt(n: number) {
@@ -23,6 +23,7 @@ function fmtPct(n: number) { return `${n.toFixed(2)}%`; }
 
 const tabs = [
   { id: "commission", label: "Commission", icon: Percent },
+  { id: "profit", label: "Sell Profit", icon: LineChart },
   { id: "mortgage", label: "Mortgage", icon: Home },
   { id: "roi", label: "ROI & Yield", icon: TrendingUp },
   { id: "dld", label: "DLD Fees", icon: Landmark },
@@ -62,6 +63,96 @@ function CommissionCalc() {
         <div className={resultBox}><p className="text-xs text-[var(--text-muted)]">Gross Commission</p><p className="mt-1 font-mono text-2xl font-semibold text-[var(--text-gold)]">{fmt(gross)}</p></div>
         {vat && <div className={resultBox}><p className="text-xs text-[var(--text-muted)]">VAT (5%)</p><p className="mt-1 font-mono text-lg font-semibold text-[var(--amber)]">{fmt(vatAmt)}</p></div>}
         <div className={`${resultBox} border border-[var(--border-gold)]`}><p className="text-xs text-[var(--text-muted)]">Net Commission (after VAT)</p><p className="mt-1 font-mono text-2xl font-bold text-[var(--green)]">{fmt(net)}</p></div>
+      </div>
+    </div>
+  );
+}
+
+function ProfitCalc() {
+  const [purchasePrice, setPurchasePrice] = useState(2800000);
+  const [currentPrice, setCurrentPrice] = useState(3450000);
+  const [yearsHeld, setYearsHeld] = useState(3);
+  const [purchaseFees, setPurchaseFees] = useState(140000); // ~5% DLD+admin
+  const [sellingCommission, setSellingCommission] = useState(2);
+  const [holdingCostsYear, setHoldingCostsYear] = useState(25000); // service charges etc.
+  const [mortgageBalance, setMortgageBalance] = useState(0);
+  const [earlySettlementFee, setEarlySettlementFee] = useState(0);
+
+  const grossGain = currentPrice - purchasePrice;
+  const totalHoldingCost = holdingCostsYear * yearsHeld;
+  const sellCommission = currentPrice * (sellingCommission / 100);
+  const sellCommissionVat = sellCommission * 0.05;
+  const totalSellingCosts = sellCommission + sellCommissionVat + earlySettlementFee;
+
+  const totalCosts = purchaseFees + totalHoldingCost + totalSellingCosts;
+  const netProfit = grossGain - totalCosts;
+  const netProceedsToSeller = currentPrice - totalSellingCosts - mortgageBalance;
+
+  const totalInvested = purchasePrice + purchaseFees + totalHoldingCost;
+  const roiPct = totalInvested > 0 ? (netProfit / totalInvested) * 100 : 0;
+  const annualizedRoi = yearsHeld > 0 && totalInvested > 0
+    ? (Math.pow(1 + netProfit / totalInvested, 1 / yearsHeld) - 1) * 100
+    : 0;
+  const appreciationPct = purchasePrice > 0 ? ((currentPrice - purchasePrice) / purchasePrice) * 100 : 0;
+
+  const profitColor = netProfit >= 0 ? "text-[var(--green)]" : "text-[var(--red)]";
+
+  return (
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-4">
+          <h4 className="text-sm font-semibold text-[var(--text-secondary)]">Purchase</h4>
+          <div><label className={labelClass}>Original Purchase Price (AED)</label><Input type="number" value={purchasePrice} onChange={e => setPurchasePrice(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Purchase Fees Paid (DLD 4% + admin + trustee)</label><Input type="number" value={purchaseFees} onChange={e => setPurchaseFees(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Years Held</label><Input type="number" step="0.5" value={yearsHeld} onChange={e => setYearsHeld(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Annual Holding Costs (service charges, maintenance)</label><Input type="number" value={holdingCostsYear} onChange={e => setHoldingCostsYear(Number(e.target.value))} /></div>
+        </div>
+        <div className="space-y-4">
+          <h4 className="text-sm font-semibold text-[var(--text-secondary)]">Sale Today</h4>
+          <div><label className={labelClass}>Current Selling Price (AED)</label><Input type="number" value={currentPrice} onChange={e => setCurrentPrice(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Selling Commission (%)</label><Input type="number" step="0.1" value={sellingCommission} onChange={e => setSellingCommission(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Outstanding Mortgage Balance</label><Input type="number" value={mortgageBalance} onChange={e => setMortgageBalance(Number(e.target.value))} /></div>
+          <div><label className={labelClass}>Early Settlement Fee (if any)</label><Input type="number" value={earlySettlementFee} onChange={e => setEarlySettlementFee(Number(e.target.value))} /></div>
+        </div>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className={resultBox}>
+          <p className="text-xs text-[var(--text-muted)]">Appreciation</p>
+          <p className={`mt-1 font-mono text-2xl font-semibold ${appreciationPct >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>{fmtPct(appreciationPct)}</p>
+          <p className="text-xs text-[var(--text-muted)]">{fmt(grossGain)} gross gain</p>
+        </div>
+        <div className={`${resultBox} border border-[var(--border-gold)]`}>
+          <p className="text-xs text-[var(--text-muted)]">Net Profit (after all costs)</p>
+          <p className={`mt-1 font-mono text-2xl font-bold ${profitColor}`}>{fmt(netProfit)}</p>
+          <p className="text-xs text-[var(--text-muted)]">{fmtPct(roiPct)} total ROI</p>
+        </div>
+        <div className={resultBox}>
+          <p className="text-xs text-[var(--text-muted)]">Annualized Return</p>
+          <p className={`mt-1 font-mono text-2xl font-semibold ${annualizedRoi >= 0 ? "text-[var(--green)]" : "text-[var(--red)]"}`}>{fmtPct(annualizedRoi)}</p>
+          <p className="text-xs text-[var(--text-muted)]">per year ({yearsHeld}yr hold)</p>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-[var(--border-default)]">
+        <table className="w-full text-sm">
+          <tbody>
+            <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]">
+              <td className="px-3 py-2 text-xs font-semibold text-[var(--text-secondary)]">Breakdown</td>
+              <td className="px-3 py-2 text-right text-xs font-semibold text-[var(--text-secondary)]">Amount</td>
+            </tr>
+            <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">Purchase Price</td><td className="px-3 py-2 text-right font-mono text-[var(--text-primary)]">{fmt(purchasePrice)}</td></tr>
+            <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">+ Purchase Fees</td><td className="px-3 py-2 text-right font-mono text-[var(--amber)]">{fmt(purchaseFees)}</td></tr>
+            <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">+ Holding Costs ({yearsHeld}yr × {fmt(holdingCostsYear)})</td><td className="px-3 py-2 text-right font-mono text-[var(--amber)]">{fmt(totalHoldingCost)}</td></tr>
+            <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">= Total Invested</td><td className="px-3 py-2 text-right font-mono font-semibold text-[var(--text-primary)]">{fmt(totalInvested)}</td></tr>
+            <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-elevated)]"><td className="px-3 py-2 text-[var(--text-secondary)]">Sale Price</td><td className="px-3 py-2 text-right font-mono text-[var(--text-primary)]">{fmt(currentPrice)}</td></tr>
+            <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">− Agent Commission ({sellingCommission}% + VAT)</td><td className="px-3 py-2 text-right font-mono text-[var(--red)]">{fmt(sellCommission + sellCommissionVat)}</td></tr>
+            {earlySettlementFee > 0 && <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">− Early Settlement Fee</td><td className="px-3 py-2 text-right font-mono text-[var(--red)]">{fmt(earlySettlementFee)}</td></tr>}
+            {mortgageBalance > 0 && <tr className="border-b border-[var(--border-subtle)]"><td className="px-3 py-2 text-[var(--text-secondary)]">− Mortgage Payoff</td><td className="px-3 py-2 text-right font-mono text-[var(--red)]">{fmt(mortgageBalance)}</td></tr>}
+            <tr className="border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]"><td className="px-3 py-2 font-semibold text-[var(--text-primary)]">Net Proceeds to Seller</td><td className="px-3 py-2 text-right font-mono text-lg font-bold text-[var(--blue)]">{fmt(netProceedsToSeller)}</td></tr>
+            <tr className="bg-[var(--bg-elevated)]"><td className="px-3 py-3 font-semibold text-[var(--text-primary)]">Net Profit</td><td className={`px-3 py-3 text-right font-mono text-lg font-bold ${profitColor}`}>{fmt(netProfit)}</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -385,6 +476,7 @@ function RentalCompare() {
 
 const calculators: Record<TabId, () => ReactElement> = {
   commission: CommissionCalc,
+  profit: ProfitCalc,
   mortgage: MortgageCalc,
   roi: RoiCalc,
   dld: DldCalc,

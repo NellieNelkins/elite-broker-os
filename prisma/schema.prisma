@@ -201,6 +201,50 @@ model Activity {
   @@index([userId, createdAt])
 }
 
+// ===== Market Intelligence =====
+
+model Community {
+  id              String   @id @default(cuid())
+  slug            String   @unique
+  name            String
+  emirate         String   @default("Dubai")
+  propertyTypes   String   // CSV: Villa, Townhouse, Apartment
+  tier            String   @default("standard") // priority, premium, standard
+  developer       String?
+  handover        String?
+  avgPricePerSqft Float    @default(0)
+  avgYield        Float    @default(0) // percent
+  minPrice        Float    @default(0)
+  maxPrice        Float    @default(0)
+  amenities       String?  // CSV
+  description     String?
+  lastRefreshedAt DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  dataPoints      MarketDataPoint[]
+
+  @@index([tier])
+}
+
+model MarketDataPoint {
+  id           String   @id @default(cuid())
+  communityId  String
+  source       String   // propertymonitor, dxbinteract, propertyfinder, bayut, dld, manual
+  bedrooms     String?  // "2", "3", "4", "5", "6+"
+  propertyType String   @default("Villa")
+  pricePerSqft Float    @default(0)
+  avgPrice     Float    @default(0)
+  rentalYield  Float    @default(0)
+  transactions Int      @default(0)
+  capturedAt   DateTime @default(now())
+
+  community    Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@index([communityId, capturedAt])
+  @@index([source, capturedAt])
+}
+
 model CoachSession {
   id             String   @id @default(cuid())
   userId         String
