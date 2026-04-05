@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
   let imported = 0;
   let skipped = 0;
   const errors: string[] = [];
+  const importedIds: string[] = [];
 
   if (importType === "contacts") {
     for (let i = 0; i < rows.length; i++) {
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
           noteParts.push(`Country: ${row[mapping.country].toString().trim()}`);
         }
 
-        await prisma.contact.create({
+        const created = await prisma.contact.create({
           data: {
             userId: user.id,
             name,
@@ -83,6 +84,7 @@ export async function POST(req: NextRequest) {
           },
         });
         imported++;
+        importedIds.push(created.id);
       } catch (err) {
         errors.push(`Row ${i + 1}: ${err instanceof Error ? err.message : "Unknown error"}`);
       }
@@ -95,5 +97,6 @@ export async function POST(req: NextRequest) {
     skipped,
     total: rows.length,
     errors: errors.slice(0, 10),
+    importedIds,
   });
 }

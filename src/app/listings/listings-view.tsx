@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Eye, Clock } from "lucide-react";
+import { Plus, Eye, Clock, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { CreateListingModal } from "./create-listing-modal";
+import { EditListingModal } from "./edit-listing-modal";
 
 interface ListingRow {
   id: string;
@@ -31,6 +32,7 @@ interface ListingsViewProps {
 
 export function ListingsView({ listings }: ListingsViewProps) {
   const [showCreate, setShowCreate] = useState(false);
+  const [editingListing, setEditingListing] = useState<ListingRow | null>(null);
   const router = useRouter();
   const activeCount = listings.filter((l) => l.status === "Active").length;
 
@@ -59,7 +61,15 @@ export function ListingsView({ listings }: ListingsViewProps) {
                   <h3 className="text-sm font-semibold text-[var(--text-primary)]">{listing.name}</h3>
                   <p className="mt-0.5 text-xs text-[var(--text-muted)]">{listing.community || "—"}</p>
                 </div>
-                <Badge variant={statusVariant(listing.status)}>{listing.status}</Badge>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setEditingListing(listing)}
+                    className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <Badge variant={statusVariant(listing.status)}>{listing.status}</Badge>
+                </div>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -88,6 +98,14 @@ export function ListingsView({ listings }: ListingsViewProps) {
           open={showCreate}
           onClose={() => setShowCreate(false)}
           onCreated={() => { setShowCreate(false); router.refresh(); }}
+        />
+      )}
+      {editingListing && (
+        <EditListingModal
+          open={!!editingListing}
+          listing={editingListing}
+          onClose={() => setEditingListing(null)}
+          onSaved={() => { setEditingListing(null); router.refresh(); }}
         />
       )}
     </div>

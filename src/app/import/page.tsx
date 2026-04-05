@@ -18,7 +18,10 @@ import {
   Pencil,
   Save,
   MapPin,
+  List,
 } from "lucide-react";
+import { saveSmartList } from "@/lib/smart-lists";
+import { toast } from "sonner";
 
 type ImportStep = "upload" | "map" | "preview" | "result";
 
@@ -27,6 +30,7 @@ interface ImportResult {
   skipped: number;
   total: number;
   errors: string[];
+  importedIds: string[];
 }
 
 const contactFields = [
@@ -61,6 +65,8 @@ export default function ImportPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [editingRow, setEditingRow] = useState<number | null>(null);
   const [editValues, setEditValues] = useState<Record<string, string>>({});
+  const [showListName, setShowListName] = useState(false);
+  const [listName, setListName] = useState("");
 
   const parseCSV = useCallback((text: string) => {
     const lines = text.split(/\r?\n/).filter((l) => l.trim());
@@ -278,6 +284,7 @@ export default function ImportPage() {
         skipped: 0,
         total: selectedRows.length,
         errors: ["Network error — please try again"],
+        importedIds: [],
       });
       setStep("result");
     }
@@ -294,6 +301,14 @@ export default function ImportPage() {
     setSelected(new Set());
     setEditingRow(null);
     setEditValues({});
+  };
+
+  const handleSaveSmartList = () => {
+    if (!listName.trim() || !result?.importedIds?.length) return;
+    saveSmartList({ name: listName.trim(), contactIds: result.importedIds });
+    toast.success(`Smart list "${listName.trim()}" created with ${result.importedIds.length} contacts`);
+    setShowListName(false);
+    setListName("");
   };
 
   // Get mapped fields that have a column assigned (for preview table)
@@ -758,6 +773,21 @@ export default function ImportPage() {
                 View Contacts
               </Button>
             </div>
+
+            {result.imported > 0 && (
+              <div className="flex items-center justify-center gap-2">
+                {!showListName ? (
+                  <Button variant="secondary" size="sm" onClick={() => setShowListName(true)}>
+                    <List size={14} /> Save as Smart List
+                  </Button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Input placeholder="List name" value={listName} onChange={(e) => setListName(e.target.value)} className="h-8 w-48" />
+                    <Button size="sm" onClick={handleSaveSmartList}>Save</Button>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

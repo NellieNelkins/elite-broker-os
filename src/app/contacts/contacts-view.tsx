@@ -3,6 +3,7 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { CreateContactModal } from "./create-contact-modal";
+import { EditContactModal } from "./edit-contact-modal";
 import {
   useReactTable,
   getCoreRowModel,
@@ -29,6 +30,7 @@ import {
   List,
   X,
   Trash2,
+  Pencil,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import {
@@ -81,6 +83,7 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
   const [newListName, setNewListName] = useState("");
   const [showAddToList, setShowAddToList] = useState<string | null>(null);
   const [addToListName, setAddToListName] = useState("");
+  const [editingContact, setEditingContact] = useState<ContactRow | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -230,6 +233,9 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
             <Button variant="ghost" size="sm"><Phone size={14} /></Button>
             <Button variant="ghost" size="sm">
               <MessageSquare size={14} className={row.original.whatsappConnected ? "text-[var(--green)]" : ""} />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => setEditingContact(row.original)}>
+              <Pencil size={14} />
             </Button>
             <Button variant="ghost" size="sm" onClick={() => {
               setShowAddToList(showAddToList === row.original.id ? null : row.original.id);
@@ -402,6 +408,14 @@ export function ContactsView({ contacts, total }: ContactsViewProps) {
           open={showCreate}
           onClose={() => setShowCreate(false)}
           onCreated={() => { setShowCreate(false); router.refresh(); }}
+        />
+      )}
+      {editingContact && (
+        <EditContactModal
+          open={!!editingContact}
+          contact={editingContact}
+          onClose={() => setEditingContact(null)}
+          onSaved={() => { setEditingContact(null); router.refresh(); }}
         />
       )}
 

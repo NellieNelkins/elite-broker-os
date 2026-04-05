@@ -27,3 +27,30 @@ export async function POST(req: Request) {
   });
   return NextResponse.json(listing, { status: 201 });
 }
+
+export async function PATCH(req: Request) {
+  const userId = await resolveUserId();
+  const body = await req.json();
+  const { id, ...data } = body;
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  const listing = await prisma.listing.updateMany({
+    where: { id, userId },
+    data: {
+      ...(data.name !== undefined && { name: data.name }),
+      ...(data.type !== undefined && { type: data.type }),
+      ...(data.price !== undefined && { price: data.price }),
+      ...(data.community !== undefined && { community: data.community }),
+      ...(data.bedrooms !== undefined && { bedrooms: data.bedrooms }),
+      ...(data.address !== undefined && { address: data.address }),
+      ...(data.status !== undefined && { status: data.status }),
+      ...(data.stepDocs !== undefined && { stepDocs: data.stepDocs }),
+      ...(data.stepPhotos !== undefined && { stepPhotos: data.stepPhotos }),
+      ...(data.stepPrice !== undefined && { stepPrice: data.stepPrice }),
+      ...(data.stepPortal !== undefined && { stepPortal: data.stepPortal }),
+      ...(data.stepLive !== undefined && { stepLive: data.stepLive }),
+    },
+  });
+  if (listing.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ success: true });
+}

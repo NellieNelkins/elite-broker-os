@@ -84,3 +84,26 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({ success: true, data: contact }, { status: 201 });
 }
+
+export async function PATCH(request: NextRequest) {
+  const userId = await resolveUserId();
+  if (!userId) return NextResponse.json({ error: "No user found" }, { status: 401 });
+
+  const body = await request.json();
+  const { id, ...data } = body;
+  if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  // Only update fields that are provided
+  const updateData: Record<string, unknown> = {};
+  const allowedFields = ["name", "phone", "email", "type", "stage", "priority", "value", "community", "property", "propType", "bedrooms", "nationality", "source", "notes"];
+  for (const field of allowedFields) {
+    if (data[field] !== undefined) updateData[field] = data[field];
+  }
+
+  const contact = await prisma.contact.updateMany({
+    where: { id, userId },
+    data: updateData,
+  });
+  if (contact.count === 0) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ success: true });
+}
