@@ -96,36 +96,38 @@ export default async function MarketPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {tierCommunities.map(c => (
-                    <Card key={c.id} className="transition-all hover:border-[var(--border-gold)]">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle className="text-[var(--text-primary)]">{c.name}</CardTitle>
-                            <p className="mt-1 flex items-center gap-1 text-xs text-[var(--text-muted)]">
-                              <MapPin size={11} /> {c.developer || "—"} · {c.handover || "—"}
-                            </p>
+                    <Link key={c.id} href={`/market/${c.slug}`} className="block">
+                      <Card className="h-full cursor-pointer transition-all hover:border-[var(--border-gold)] hover:shadow-[var(--shadow-gold)]">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <CardTitle className="text-[var(--text-primary)]">{c.name}</CardTitle>
+                              <p className="mt-1 flex items-center gap-1 text-xs text-[var(--text-muted)]">
+                                <MapPin size={11} /> {c.developer || "—"} · {c.handover || "—"}
+                              </p>
+                            </div>
+                            <Badge variant={tierVariant(c.tier)}>{tierLabel(c.tier)}</Badge>
                           </div>
-                          <Badge variant={tierVariant(c.tier)}>{tierLabel(c.tier)}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-3">
-                        <p className="text-xs leading-relaxed text-[var(--text-muted)] line-clamp-3">{c.description}</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-md bg-[var(--bg-elevated)] p-2">
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg PSF</p>
-                            <p className="font-mono text-sm font-semibold text-[var(--text-gold)]">AED {c.avgPricePerSqft.toLocaleString()}</p>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <p className="text-xs leading-relaxed text-[var(--text-muted)] line-clamp-3">{c.description}</p>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="rounded-md bg-[var(--bg-elevated)] p-2">
+                              <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg PSF</p>
+                              <p className="font-mono text-sm font-semibold text-[var(--text-gold)]">AED {c.avgPricePerSqft.toLocaleString()}</p>
+                            </div>
+                            <div className="rounded-md bg-[var(--bg-elevated)] p-2">
+                              <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg Yield</p>
+                              <p className="font-mono text-sm font-semibold text-[var(--blue)]">{c.avgYield.toFixed(1)}%</p>
+                            </div>
                           </div>
-                          <div className="rounded-md bg-[var(--bg-elevated)] p-2">
-                            <p className="text-[10px] uppercase tracking-wide text-[var(--text-muted)]">Avg Yield</p>
-                            <p className="font-mono text-sm font-semibold text-[var(--blue)]">{c.avgYield.toFixed(1)}%</p>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="flex items-center gap-1 text-[var(--text-muted)]"><HomeIcon size={11} />{c.propertyTypes}</span>
+                            <span className="flex items-center gap-1 text-[var(--text-muted)]"><TrendingUp size={11} />{fmt(c.minPrice)} - {fmt(c.maxPrice)}</span>
                           </div>
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="flex items-center gap-1 text-[var(--text-muted)]"><HomeIcon size={11} />{c.propertyTypes}</span>
-                          <span className="flex items-center gap-1 text-[var(--text-muted)]"><TrendingUp size={11} />{fmt(c.minPrice)} - {fmt(c.maxPrice)}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               </div>
